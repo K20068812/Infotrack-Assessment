@@ -4,6 +4,8 @@
     // maybe I can use a factory pattern or dependency injection to resolve the correct search engine.
     public interface ISearchEngine
     {
+        public string BaseUrl { get; }
+
         Task<List<int>> GetRankingPositionsAsync(string searchQuery, string targetUrl);
     }
 }
