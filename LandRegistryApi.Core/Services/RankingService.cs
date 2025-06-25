@@ -1,0 +1,38 @@
+﻿using LandRegistryApi.Core.Entities;
+using LandRegistryApi.Core.Interfaces;
+
+namespace LandRegistryApi.Core.Services
+{
+    public class RankingService : IRankingService
+    {
+        private readonly ISearchEngine _searchEngine;
+        private readonly ISearchResultRepository _searchResultRepository;
+
+        public RankingService(ISearchEngine searchEngine, ISearchResultRepository searchResultRepository)
+        {
+            _searchEngine = searchEngine ?? throw new ArgumentNullException(nameof(searchEngine));
+            _searchResultRepository = searchResultRepository ?? throw new ArgumentNullException(nameof(searchResultRepository));
+        }
+
+        public async Task<SearchResult> CheckRankingAsync(string searchQuery, string targetUrl)
+        {
+            var positions = await _searchEngine.GetRankingPositionsAsync(searchQuery, targetUrl);
+
+            var result = new SearchResult
+            {
+                SearchQuery = searchQuery,
+                TargetUrl = targetUrl,
+                Positions = positions.Any() ? string.Join(",", positions) : "0",
+                SearchDate = DateTime.UtcNow,
+                TotalResults = positions.Count
+            };
+
+            return await _searchResultRepository.SaveSearchResultAsync(result);
+        }
+
+        public async Task<List<SearchResult>> GetRankingHistoryAsync(string targetUrl, int days = 30)
+        {
+            return await _searchResultRepository.GetAllSearchResultsAsync(targetUrl, days);
+        }
+    }
+}
