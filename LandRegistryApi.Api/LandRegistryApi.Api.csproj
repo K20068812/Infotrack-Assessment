@@ -12,6 +12,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\LandRegistryApi.Core\LandRegistryApi.Core.csproj" />
+    <ProjectReference Include="..\LandRegistryApi.Infrastructure\LandRegistryApi.Infrastructure.csproj" />
   </ItemGroup>
 
 </Project>
