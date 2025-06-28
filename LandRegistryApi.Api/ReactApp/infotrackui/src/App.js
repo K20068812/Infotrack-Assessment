@@ -1,4 +1,50 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, memo } from "react";
+import {
+  LineChart,
+  XAxis,
+  YAxis,
+  Tooltip,
+  Line,
+  ResponsiveContainer,
+  ScatterChart,
+  Scatter,
+  CartesianGrid,
+} from "recharts";
+
+const MemoizedLineChart = memo(({ data }) => (
+  <div style={{ width: "100%", height: "300px" }}>
+    <ResponsiveContainer>
+      <LineChart data={data}>
+        <CartesianGrid strokeDasharray="3 3" />
+        <XAxis dataKey="date" />
+        <YAxis domain={[0, "dataMax + 10"]} reversed={true} />
+        <Tooltip />
+        <Line
+          type="monotone"
+          dataKey="bestRank"
+          stroke="#007bff"
+          strokeWidth={2}
+          dot={false}
+          activeDot={{ r: 4 }}
+        />
+      </LineChart>
+    </ResponsiveContainer>
+  </div>
+));
+
+const MemoizedScatterChart = memo(({ data }) => (
+  <div style={{ width: "100%", height: "300px" }}>
+    <ResponsiveContainer>
+      <ScatterChart data={data}>
+        <CartesianGrid strokeDasharray="3 3" />
+        <XAxis dataKey="date" />
+        <YAxis dataKey="position" domain={[0, "dataMax + 5"]} reversed={true} />
+        <Tooltip />
+        <Scatter dataKey="position" fill="#28a745" />
+      </ScatterChart>
+    </ResponsiveContainer>
+  </div>
+));
 
 const App = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -8,6 +54,7 @@ const App = () => {
   const [error, setError] = useState(null);
   const [history, setHistory] = useState([]);
   const [historyLoading, setHistoryLoading] = useState(false);
+  const [viewMode, setViewMode] = useState("table"); // "table" or "chart"
 
   const API_BASE = "/api";
 
@@ -44,7 +91,8 @@ const App = () => {
       setResult(data);
       loadHistory();
     } catch (err) {
-      setError(err.message);
+      setError(err.message || "An unexpected error occurred.");
+      setResult(null);
     } finally {
       setLoading(false);
     }
@@ -65,15 +113,12 @@ const App = () => {
         setHistory(data);
       }
     } catch (err) {
-      console.error("Failed to load history:", err);
+      setError("Failed to load ranking history. Please try again later.");
+      setHistory([]);
     } finally {
       setHistoryLoading(false);
     }
   };
-
-  // useEffect(() => {
-  //   loadHistory();
-  // }, [targetUrl]);
 
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString("en-GB", {
@@ -94,13 +139,46 @@ const App = () => {
     return "red";
   };
 
+  // Only memoize the chart data that gets passed to Recharts
+  const chartData = useMemo(() => {
+    return history
+      .slice()
+      .reverse()
+      .map((item) => ({
+        date: formatDate(item.searchDate),
+        bestRank:
+          item.foundPositions && item.foundPositions.length > 0
+            ? Math.min(...item.foundPositions)
+            : 101,
+      }));
+  }, [history]);
+
+  const scatterData = useMemo(() => {
+    return history
+      .slice()
+      .reverse()
+      .flatMap((item, dateIndex) =>
+        item.foundPositions
+          ? item.foundPositions.map((position) => ({
+              date: formatDate(item.searchDate),
+              position: position,
+              dateIndex: dateIndex,
+            }))
+          : []
+      );
+  }, [history]);
+
   return (
     <div>
-      <h1>Ranking Checker</h1>
+      <h1>SEO Ranking Checker</h1>
 
-      <div>
+      {/* Search Form */}
+      <div
+        style={{ border: "1px solid #ccc", padding: "20px", margin: "20px 0" }}
+      >
         <h2>Search Form</h2>
-        <div>
+
+        <div style={{ marginBottom: "15px" }}>
           <label>Search Keywords:</label>
           <br />
           <input
@@ -111,8 +189,8 @@ const App = () => {
             size="50"
           />
         </div>
-        <br />
-        <div>
+
+        <div style={{ marginBottom: "15px" }}>
           <label>Target Website URL:</label>
           <br />
           <input
@@ -123,125 +201,172 @@ const App = () => {
             size="50"
           />
         </div>
-        <br />
+
         <button onClick={handleSearch} disabled={loading}>
           {loading ? "Checking Rankings..." : "Check Rankings"}
         </button>
       </div>
 
+      {/* Error Display */}
       {error && (
         <div
           style={{
-            color: "red",
-            border: "1px solid red",
+            backgroundColor: "#ffebee",
             padding: "10px",
+            border: "1px solid red",
             margin: "10px 0",
           }}
         >
-          <strong>Error:</strong> {error}
+          Error: {error}
         </div>
       )}
 
+      {/* Results Display */}
       {result && (
         <div
           style={{
             border: "1px solid #ccc",
-            padding: "10px",
-            margin: "10px 0",
+            padding: "15px",
+            margin: "20px 0",
           }}
         >
-          <h2>Search Results</h2>
-          <p>
+          <h3>Search Results</h3>
+          <div>
             <strong>Search Query:</strong> {result.searchQuery}
-          </p>
-          <p>
+          </div>
+          <div>
             <strong>Target URL:</strong> {result.targetUrl}
-          </p>
-          <p>
+          </div>
+          <div>
             <strong>Search Date:</strong> {formatDate(result.searchDate)}
-          </p>
-          <p>
+          </div>
+          <div>
             <strong>Positions Found:</strong>{" "}
             <span style={{ color: getPositionColor(result.positions) }}>
               {result.positions === "0" ? "Not Found" : result.positions}
             </span>
-          </p>
-
-          {result.foundPositions && result.foundPositions.length > 0 && (
-            <div>
-              <strong>Position Details:</strong>
-              {result.foundPositions.map((pos, index) => (
-                <span
-                  key={index}
-                  style={{
-                    margin: "0 5px",
-                    color: getPositionColor(pos.toString()),
-                  }}
-                >
-                  #{pos}
-                </span>
-              ))}
-            </div>
-          )}
+          </div>
         </div>
       )}
 
+      {/* History Section */}
       <div
-        style={{ border: "1px solid #ccc", padding: "10px", margin: "10px 0" }}
+        style={{ border: "1px solid #ccc", padding: "20px", margin: "20px 0" }}
       >
-        <h2>
-          Ranking History (Last 30 Days)
-          <button
-            onClick={loadHistory}
-            disabled={historyLoading}
-            style={{ marginLeft: "10px" }}
-          >
-            {historyLoading ? "Loading..." : "Refresh"}
-          </button>
-        </h2>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            marginBottom: "20px",
+          }}
+        >
+          <h3>Ranking History (Last 30 Days)</h3>
+
+          <div>
+            <button
+              onClick={() => setViewMode("table")}
+              style={{
+                backgroundColor: viewMode === "table" ? "#007bff" : "#f8f9fa",
+                color: viewMode === "table" ? "white" : "black",
+                marginRight: "5px",
+              }}
+            >
+              Table View
+            </button>
+            <button
+              onClick={() => setViewMode("chart")}
+              style={{
+                backgroundColor: viewMode === "chart" ? "#007bff" : "#f8f9fa",
+                color: viewMode === "chart" ? "white" : "black",
+                marginRight: "10px",
+              }}
+            >
+              Chart View
+            </button>
+            <button onClick={loadHistory} disabled={historyLoading}>
+              {historyLoading ? "Loading..." : "Refresh"}
+            </button>
+          </div>
+        </div>
 
         {historyLoading ? (
           <p>Loading history...</p>
         ) : history.length > 0 ? (
-          <table
-            border="1"
-            style={{ width: "100%", borderCollapse: "collapse" }}
-          >
-            <thead>
-              <tr>
-                <th>Date</th>
-                <th>Search Query</th>
-                <th>Positions</th>
-                <th>Best Position</th>
-              </tr>
-            </thead>
-            <tbody>
-              {history.map((item, index) => (
-                <tr key={index}>
-                  <td>{formatDate(item.searchDate)}</td>
-                  <td>{item.searchQuery}</td>
-                  <td style={{ color: getPositionColor(item.positions) }}>
-                    {item.positions === "0" ? "Not Found" : item.positions}
-                  </td>
-                  <td>
-                    {item.foundPositions && item.foundPositions.length > 0 ? (
-                      <span
-                        style={{
-                          color: getPositionColor(
-                            Math.min(...item.foundPositions).toString()
-                          ),
-                        }}
-                      >
-                        #{Math.min(...item.foundPositions)}
-                      </span>
-                    ) : (
-                      "-"
-                    )}
-                  </td>
+          viewMode === "table" ? (
+            <table
+              border="1"
+              style={{ width: "100%", borderCollapse: "collapse" }}
+            >
+              <thead>
+                <tr style={{ backgroundColor: "#f8f9fa" }}>
+                  <th style={{ padding: "8px" }}>Date</th>
+                  <th style={{ padding: "8px" }}>Search Query</th>
+                  <th style={{ padding: "8px" }}>Positions</th>
+                  <th style={{ padding: "8px" }}>Best Position</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {history.map((item, index) => (
+                  <tr key={index}>
+                    <td style={{ padding: "8px" }}>
+                      {formatDate(item.searchDate)}
+                    </td>
+                    <td style={{ padding: "8px" }}>{item.searchQuery}</td>
+                    <td
+                      style={{
+                        padding: "8px",
+                        color: getPositionColor(item.positions),
+                      }}
+                    >
+                      {item.positions === "0" ? "Not Found" : item.positions}
+                    </td>
+                    <td style={{ padding: "8px" }}>
+                      {item.foundPositions && item.foundPositions.length > 0 ? (
+                        <span
+                          style={{
+                            backgroundColor: getPositionColor(item.positions),
+                            color: "white",
+                            padding: "2px 6px",
+                            borderRadius: "3px",
+                          }}
+                        >
+                          #{Math.min(...item.foundPositions)}
+                        </span>
+                      ) : (
+                        "-"
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          ) : (
+            viewMode === "chart" && (
+              <div>
+                {/* Best Rankings Line Chart */}
+                <div style={{ marginBottom: "40px" }}>
+                  <h4>Best Ranking Trend</h4>
+                  <MemoizedLineChart data={chartData} />
+                </div>
+
+                {/* All Positions Scatter Chart */}
+                <div>
+                  <h4>All Ranking Positions</h4>
+                  <MemoizedScatterChart data={scatterData} />
+                  <p
+                    style={{
+                      fontSize: "12px",
+                      color: "#666",
+                      fontStyle: "italic",
+                    }}
+                  >
+                    Each dot shows a ranking position found on that date
+                  </p>
+                </div>
+              </div>
+            )
+          )
         ) : (
           <p>No ranking history found. Perform a search to start tracking!</p>
         )}
