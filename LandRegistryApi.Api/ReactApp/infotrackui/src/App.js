@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
 
 const App = () => {
-  const [searchQuery, setSearchQuery] = useState("land registry searches");
-  const [targetUrl, setTargetUrl] = useState("www.infotrack.co.uk");
+  const [searchQuery, setSearchQuery] = useState("");
+  const [targetUrl, setTargetUrl] = useState("");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
@@ -12,6 +12,13 @@ const App = () => {
   const API_BASE = "/api";
 
   const handleSearch = async () => {
+    if (!searchQuery || !targetUrl) {
+      setError("Please enter both search keywords and target URL.");
+      return;
+    }
+
+    if (loading) return;
+
     setLoading(true);
     setError(null);
     setResult(null);
@@ -64,9 +71,9 @@ const App = () => {
     }
   };
 
-  useEffect(() => {
-    loadHistory();
-  }, [targetUrl]);
+  // useEffect(() => {
+  //   loadHistory();
+  // }, [targetUrl]);
 
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString("en-GB", {
