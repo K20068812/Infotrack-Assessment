@@ -3,6 +3,7 @@ using LandRegistryApi.Infrastructure.Configuration;
 using Microsoft.Extensions.Options;
 using HtmlAgilityPack;
 using System.Web;
+using FluentResults;
 
 namespace LandRegistryApi.Infrastructure.Services
 {
@@ -21,9 +22,9 @@ namespace LandRegistryApi.Infrastructure.Services
         // todo: if an error happens, do we want to log it and display it on the frontend?
         // theres also gotta be a better way than hardcoding the url like this below
         public string BaseUrl => "https://www.google.co.uk/search?num=100&q=";
-        public async Task<List<int>> GetRankingPositionsAsync(string searchQuery, string targetUrl)
+
+        public async Task<Result<List<int>>> GetRankingPositionsAsync(string searchQuery, string targetUrl)
         {
-            // todo: why do they need to input the url??????
             try
             {
                 var encodedQuery = Uri.EscapeDataString(searchQuery);
@@ -38,29 +39,25 @@ namespace LandRegistryApi.Infrastructure.Services
 
                 var response = await _httpClient.SendAsync(request);
                 var content = await response.Content.ReadAsStringAsync();
-                if (content.Contains("Before you continue to Google"))
-                {
-                    return [];
-                }
 
                 return ParseSearchResults(content, targetUrl);
 
             }
             catch (Exception ex)
-            { // Todo: log the exception
-                return [];
+            {
+                return Result.Fail($"An unexpected error {ex.Message} occurred while fetching search results");
             }
         }
-        private static List<int> ParseSearchResults(string htmlContent, string targetUrl)
+        private static Result<List<int>> ParseSearchResults(string htmlContent, string targetUrl)
         {
             var doc = new HtmlDocument();
             doc.LoadHtml(htmlContent);
 
             // todo should we have a backup in case this is null - to just go off the <a> tags?
-            var anchorTags = doc.DocumentNode.SelectNodes("//div[contains(@class, 'egMi0') and contains(@class, 'kCrYT')]/a");
+            var anchorTags = doc.DocumentNode.SelectNodes($"//a[contains(@class, 'zReHs')]");
             if (anchorTags == null)
             {
-                return [];
+                return Result.Fail("No search results found");
             }
 
             var occurences = anchorTags
@@ -74,7 +71,7 @@ namespace LandRegistryApi.Infrastructure.Services
                 .Select(x => x.Index)
                 .ToList();
 
-            return occurences;
+            return Result.Ok(occurences);
         }
     }
 }

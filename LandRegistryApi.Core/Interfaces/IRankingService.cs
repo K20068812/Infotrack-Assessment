@@ -1,10 +1,11 @@
-﻿using LandRegistryApi.Core.Entities;
+﻿using FluentResults;
+using LandRegistryApi.Core.Entities;
 
 namespace LandRegistryApi.Core.Interfaces
 {
     public interface IRankingService
     {
-        Task<SearchResult> CheckRankingAsync(string searchQuery, string targetUrl);
-        Task<List<SearchResult>> GetRankingHistoryAsync(string targetUrl, int days = 30);
+        Task<Result<SearchResult>> CheckRankingAsync(string searchQuery, string targetUrl);
+        Task<Result<List<SearchResult>>> GetRankingHistoryAsync(string targetUrl, int days = 30);
     }
 }

@@ -1,4 +1,5 @@
-﻿using LandRegistryApi.Core.Entities;
+﻿using FluentResults;
+using LandRegistryApi.Core.Entities;
 using LandRegistryApi.Core.Interfaces;
 
 namespace LandRegistryApi.Core.Services
@@ -14,9 +15,13 @@ namespace LandRegistryApi.Core.Services
             _searchResultRepository = searchResultRepository ?? throw new ArgumentNullException(nameof(searchResultRepository));
         }
 
-        public async Task<SearchResult> CheckRankingAsync(string searchQuery, string targetUrl)
+        public async Task<Result<SearchResult>> CheckRankingAsync(string searchQuery, string targetUrl)
         {
             var positions = await _searchEngine.GetRankingPositionsAsync(searchQuery, targetUrl);
+            if (!positions.IsSuccess)
+            {
+                return Result.Fail(positions.Errors);
+            }
 
             var result = new SearchResult
             {
@@ -29,7 +34,7 @@ namespace LandRegistryApi.Core.Services
             return await _searchResultRepository.SaveSearchResultAsync(result);
         }
 
-        public async Task<List<SearchResult>> GetRankingHistoryAsync(string targetUrl, int days = 30)
+        public async Task<Result<List<SearchResult>>> GetRankingHistoryAsync(string targetUrl, int days = 30)
         {
             return await _searchResultRepository.GetAllSearchResultsAsync(targetUrl, days);
         }

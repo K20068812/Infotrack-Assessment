@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, memo } from "react";
+import { useState, useMemo, memo } from "react";
 import {
   LineChart,
   XAxis,
@@ -6,8 +6,6 @@ import {
   Tooltip,
   Line,
   ResponsiveContainer,
-  ScatterChart,
-  Scatter,
   CartesianGrid,
 } from "recharts";
 
@@ -28,20 +26,6 @@ const MemoizedLineChart = memo(({ data }) => (
           activeDot={{ r: 4 }}
         />
       </LineChart>
-    </ResponsiveContainer>
-  </div>
-));
-
-const MemoizedScatterChart = memo(({ data }) => (
-  <div style={{ width: "100%", height: "300px" }}>
-    <ResponsiveContainer>
-      <ScatterChart data={data}>
-        <CartesianGrid strokeDasharray="3 3" />
-        <XAxis dataKey="date" />
-        <YAxis dataKey="position" domain={[0, "dataMax + 5"]} reversed={true} />
-        <Tooltip />
-        <Scatter dataKey="position" fill="#28a745" />
-      </ScatterChart>
     </ResponsiveContainer>
   </div>
 ));
@@ -131,15 +115,13 @@ const App = () => {
   };
 
   const getPositionColor = (positions) => {
-    if (!positions || positions === "0") return "red";
-    const nums = positions.split(",").map(Number);
-    const bestPosition = Math.min(...nums);
+    if (!positions || positions.length === 0) return "red";
+    const bestPosition = Math.min(...positions);
     if (bestPosition <= 10) return "green";
     if (bestPosition <= 30) return "orange";
     return "red";
   };
 
-  // Only memoize the chart data that gets passed to Recharts
   const chartData = useMemo(() => {
     return history
       .slice()
@@ -147,25 +129,10 @@ const App = () => {
       .map((item) => ({
         date: formatDate(item.searchDate),
         bestRank:
-          item.foundPositions && item.foundPositions.length > 0
-            ? Math.min(...item.foundPositions)
+          item.positions && item.positions.length > 0
+            ? Math.min(...item.positions)
             : 101,
       }));
-  }, [history]);
-
-  const scatterData = useMemo(() => {
-    return history
-      .slice()
-      .reverse()
-      .flatMap((item, dateIndex) =>
-        item.foundPositions
-          ? item.foundPositions.map((position) => ({
-              date: formatDate(item.searchDate),
-              position: position,
-              dateIndex: dateIndex,
-            }))
-          : []
-      );
   }, [history]);
 
   return (
@@ -240,7 +207,9 @@ const App = () => {
           <div>
             <strong>Positions Found:</strong>{" "}
             <span style={{ color: getPositionColor(result.positions) }}>
-              {result.positions === "0" ? "Not Found" : result.positions}
+              {result.positions.length === 0
+                ? "Not Found"
+                : result.positions.join(", ")}
             </span>
           </div>
         </div>
@@ -315,10 +284,12 @@ const App = () => {
                         color: getPositionColor(item.positions),
                       }}
                     >
-                      {item.positions === "0" ? "Not Found" : item.positions}
+                      {item.positions.length === 0
+                        ? "Not Found"
+                        : item.positions}
                     </td>
                     <td style={{ padding: "8px" }}>
-                      {item.foundPositions && item.foundPositions.length > 0 ? (
+                      {item.positions && item.positions.length > 0 ? (
                         <span
                           style={{
                             backgroundColor: getPositionColor(item.positions),
@@ -327,7 +298,7 @@ const App = () => {
                             borderRadius: "3px",
                           }}
                         >
-                          #{Math.min(...item.foundPositions)}
+                          #{Math.min(...item.positions)}
                         </span>
                       ) : (
                         "-"
@@ -343,20 +314,6 @@ const App = () => {
                 <div style={{ marginBottom: "40px" }}>
                   <h4>Best Ranking Trend</h4>
                   <MemoizedLineChart data={chartData} />
-                </div>
-
-                <div>
-                  <h4>All Ranking Positions</h4>
-                  <MemoizedScatterChart data={scatterData} />
-                  <p
-                    style={{
-                      fontSize: "12px",
-                      color: "#666",
-                      fontStyle: "italic",
-                    }}
-                  >
-                    Each dot shows a ranking position found on that date
-                  </p>
                 </div>
               </div>
             )

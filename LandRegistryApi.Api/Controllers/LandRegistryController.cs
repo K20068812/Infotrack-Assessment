@@ -17,45 +17,41 @@ namespace LandRegistryApi.Api.Controllers
         public async Task<IActionResult> CheckRanking([FromBody] SearchRequest request)
         {
             // todo: do we want a try catch here? or in the service?
-            try
+            var result = await _rankingService.CheckRankingAsync(request.SearchQuery, request.TargetUrl);
+            if (!result.IsSuccess)
             {
-                var result = await _rankingService.CheckRankingAsync(request.SearchQuery, request.TargetUrl);
-                return Ok(new SearchResult
-                {
-                    SearchQuery = result.SearchQuery,
-                    TargetUrl = result.TargetUrl,
-                    Positions = result.Positions,
-                    SearchDate = result.SearchDate
-                });
+                return StatusCode(500, result.Errors);
+            }
 
-            }
-            catch (Exception ex)
+            var rankings = result.Value;
+            return Ok(new SearchResult
             {
-                return StatusCode(500, new { Error = "An error occurred while checking the ranking.", Details = ex.Message });
-            }
+                SearchQuery = rankings.SearchQuery,
+                TargetUrl = rankings.TargetUrl,
+                Positions = rankings.Positions,
+                SearchDate = rankings.SearchDate
+            });
         }
 
         [HttpGet("api/ranking-history/{targetUrl}")]
 
         public async Task<IActionResult> GetRankingHistory(string targetUrl, [FromQuery] int days = 30)
         {
-            try
+            var unescapedUrl = Uri.UnescapeDataString(targetUrl);
+            var result = await _rankingService.GetRankingHistoryAsync(unescapedUrl, days);
+            if (!result.IsSuccess)
             {
-                var unescapedUrl = Uri.UnescapeDataString(targetUrl);
-                var history = await _rankingService.GetRankingHistoryAsync(unescapedUrl, days);
+                return StatusCode(500, result.Errors);
+            }
 
-                return Ok(history.Select(sr => new SearchResult
-                {
-                    SearchQuery = sr.SearchQuery,
-                    TargetUrl = sr.TargetUrl,
-                    Positions = sr.Positions,
-                    SearchDate = sr.SearchDate,
-                }));
-            }
-            catch (Exception ex)
+            var history = result.Value;
+            return Ok(history.Select(sr => new SearchResult
             {
-                return StatusCode(500, new { Error = "An error occurred while retrieving the ranking history.", Details = ex.Message });
-            }
+                SearchQuery = sr.SearchQuery,
+                TargetUrl = sr.TargetUrl,
+                Positions = sr.Positions,
+                SearchDate = sr.SearchDate,
+            }));
         }
     }
 }
