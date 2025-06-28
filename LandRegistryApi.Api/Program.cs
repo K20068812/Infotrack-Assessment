@@ -1,5 +1,7 @@
 using LandRegistryApi.Core.Configuration;
 using LandRegistryApi.Infrastructure.Configuration;
+using Microsoft.Extensions.FileProviders;
+using Microsoft.AspNetCore.SpaServices.ReactDevelopmentServer;
 
 namespace LandRegistryApi.Api
 {
@@ -9,10 +11,7 @@ namespace LandRegistryApi.Api
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            // Add services to the container.
-
             builder.Services.AddControllers();
-            // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
@@ -21,7 +20,6 @@ namespace LandRegistryApi.Api
 
             var app = builder.Build();
 
-            // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
             {
                 app.UseSwagger();
@@ -32,8 +30,20 @@ namespace LandRegistryApi.Api
 
             app.UseAuthorization();
 
-
             app.MapControllers();
+
+            app.MapWhen(context => !context.Request.Path.StartsWithSegments("/api"), builder =>
+            {
+                builder.UseSpa(spa =>
+                {
+                    spa.Options.SourcePath = "ReactApp/infotrackui";
+
+                    if (app.Environment.IsDevelopment())
+                    {
+                        spa.UseReactDevelopmentServer(npmScript: "start");
+                    }
+                });
+            });
 
             app.Run();
         }
