@@ -1,7 +1,9 @@
 ﻿using LandRegistryApi.Core.Interfaces;
 using LandRegistryApi.Infrastructure.Configuration;
 using Microsoft.Extensions.Options;
-using System.Net;
+using HtmlAgilityPack;
+using System.Web;
+
 namespace LandRegistryApi.Infrastructure.Services
 {
     public class GoogleSearchEngine : ISearchEngine
@@ -21,6 +23,7 @@ namespace LandRegistryApi.Infrastructure.Services
         public string BaseUrl => "https://www.google.co.uk/search?num=100&q=";
         public async Task<List<int>> GetRankingPositionsAsync(string searchQuery, string targetUrl)
         {
+            // todo: why do they need to input the url??????
             try
             {
                 var encodedQuery = Uri.EscapeDataString(searchQuery);
@@ -34,24 +37,44 @@ namespace LandRegistryApi.Infrastructure.Services
                 }
 
                 var response = await _httpClient.SendAsync(request);
-                string content = await response.Content.ReadAsStringAsync();
+                var content = await response.Content.ReadAsStringAsync();
                 if (content.Contains("Before you continue to Google"))
                 {
-                    return new List<int>();
+                    return [];
                 }
 
-                var positions = ParseSearchResults(content, targetUrl);
-                return positions;
+                return ParseSearchResults(content, targetUrl);
+
             }
             catch (Exception ex)
             { // Todo: log the exception
-                return new List<int>();
+                return [];
             }
         }
-        private List<int> ParseSearchResults(string htmlContent, string targetUrl)
+        private static List<int> ParseSearchResults(string htmlContent, string targetUrl)
         {
-            var positions = new List<int>();
-            return positions;
+            var doc = new HtmlDocument();
+            doc.LoadHtml(htmlContent);
+
+            // todo should we have a backup in case this is null - to just go off the <a> tags?
+            var anchorTags = doc.DocumentNode.SelectNodes("//div[contains(@class, 'egMi0') and contains(@class, 'kCrYT')]/a");
+            if (anchorTags == null)
+            {
+                return [];
+            }
+
+            var occurences = anchorTags
+                .Select((anchor, index) => new { Anchor = anchor, Index = index + 1 }) // Index starts from 1
+                .Where(x =>
+                {
+                    var href = x.Anchor.GetAttributeValue("href", string.Empty);
+                    var decodedHref = HttpUtility.HtmlDecode(href);
+                    return decodedHref.Contains(targetUrl, StringComparison.OrdinalIgnoreCase);
+                })
+                .Select(x => x.Index)
+                .ToList();
+
+            return occurences;
         }
     }
 }
