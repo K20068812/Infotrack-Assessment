@@ -28,16 +28,15 @@ namespace LandRegistryApi.Api
 
             app.UseHttpsRedirection();
 
+            app.UseRouting();
+            app.MapControllers();
             app.UseAuthorization();
 
-            app.MapControllers();
-
-            app.MapWhen(context => !context.Request.Path.StartsWithSegments("/api"), builder =>
+            app.MapWhen(x => !x.Request.Path.Value.Contains("/api"), builder =>
             {
                 builder.UseSpa(spa =>
                 {
                     spa.Options.SourcePath = "ReactApp/infotrackui";
-
                     if (app.Environment.IsDevelopment())
                     {
                         spa.UseReactDevelopmentServer(npmScript: "start");

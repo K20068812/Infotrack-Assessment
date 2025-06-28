@@ -13,7 +13,7 @@ namespace LandRegistryApi.Api.Controllers
             _rankingService = rankingService ?? throw new ArgumentNullException(nameof(rankingService));
         }
 
-        [HttpPost("check-ranking")]
+        [HttpPost("api/check-ranking")]
         public async Task<IActionResult> CheckRanking([FromBody] SearchRequest request)
         {
             // todo: do we want a try catch here? or in the service?
@@ -38,7 +38,7 @@ namespace LandRegistryApi.Api.Controllers
             }
         }
 
-        [HttpGet("ranking-history/{targetUrl}")]
+        [HttpGet("api/ranking-history/{targetUrl}")]
 
         public async Task<IActionResult> GetRankingHistory(string targetUrl, [FromQuery] int days = 30)
         {
