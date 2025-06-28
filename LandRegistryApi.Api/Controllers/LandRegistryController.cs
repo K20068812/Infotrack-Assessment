@@ -25,10 +25,7 @@ namespace LandRegistryApi.Api.Controllers
                     SearchQuery = result.SearchQuery,
                     TargetUrl = result.TargetUrl,
                     Positions = result.Positions,
-                    SearchDate = result.SearchDate,
-                    FoundPositions = result.Positions != "0" ?
-                        result.Positions.Split(',').Select(int.Parse).ToList() :
-                        []
+                    SearchDate = result.SearchDate
                 });
 
             }
@@ -53,9 +50,6 @@ namespace LandRegistryApi.Api.Controllers
                     TargetUrl = sr.TargetUrl,
                     Positions = sr.Positions,
                     SearchDate = sr.SearchDate,
-                    FoundPositions = sr.Positions != "0" ?
-                        sr.Positions.Split(',').Select(int.Parse).ToList() :
-                        []
                 }));
             }
             catch (Exception ex)

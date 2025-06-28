@@ -22,9 +22,8 @@ namespace LandRegistryApi.Core.Services
             {
                 SearchQuery = searchQuery,
                 TargetUrl = targetUrl,
-                Positions = positions.Any() ? string.Join(",", positions) : "0",
+                Positions = positions,
                 SearchDate = DateTime.UtcNow,
-                TotalResults = positions.Count
             };
 
             return await _searchResultRepository.SaveSearchResultAsync(result);
