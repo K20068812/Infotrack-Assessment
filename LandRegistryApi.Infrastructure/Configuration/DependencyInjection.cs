@@ -8,6 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace LandRegistryApi.Infrastructure.Configuration
 {
+    // todo: make sure this only references core project, shouldnt reference anything else! 
     public static class DependencyInjection
     {
         public static IServiceCollection AddInfrastructureServices(this IServiceCollection services, IConfiguration configuration)
@@ -21,6 +22,7 @@ namespace LandRegistryApi.Infrastructure.Configuration
                 client.Timeout = TimeSpan.FromSeconds(30);
                 client.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"); // todo
             });
+            services.Configure<GoogleSearchOptions>(configuration.GetSection(GoogleSearchOptions.SectionName));
 
             //todo: memory caching? 
             // todo: background service for daily? or hourly? TODO!
