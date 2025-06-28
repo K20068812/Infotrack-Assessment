@@ -172,7 +172,6 @@ const App = () => {
     <div>
       <h1>SEO Ranking Checker</h1>
 
-      {/* Search Form */}
       <div
         style={{ border: "1px solid #ccc", padding: "20px", margin: "20px 0" }}
       >
@@ -207,7 +206,6 @@ const App = () => {
         </button>
       </div>
 
-      {/* Error Display */}
       {error && (
         <div
           style={{
@@ -221,7 +219,6 @@ const App = () => {
         </div>
       )}
 
-      {/* Results Display */}
       {result && (
         <div
           style={{
@@ -249,7 +246,6 @@ const App = () => {
         </div>
       )}
 
-      {/* History Section */}
       <div
         style={{ border: "1px solid #ccc", padding: "20px", margin: "20px 0" }}
       >
@@ -344,13 +340,11 @@ const App = () => {
           ) : (
             viewMode === "chart" && (
               <div>
-                {/* Best Rankings Line Chart */}
                 <div style={{ marginBottom: "40px" }}>
                   <h4>Best Ranking Trend</h4>
                   <MemoizedLineChart data={chartData} />
                 </div>
 
-                {/* All Positions Scatter Chart */}
                 <div>
                   <h4>All Ranking Positions</h4>
                   <MemoizedScatterChart data={scatterData} />
