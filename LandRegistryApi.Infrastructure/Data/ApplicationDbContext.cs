@@ -18,9 +18,8 @@ namespace LandRegistryApi.Infrastructure.Data
                 entity.Property(sr => sr.SearchQuery).IsRequired().HasMaxLength(500);
                 entity.Property(sr => sr.TargetUrl).IsRequired().HasMaxLength(500);
                 entity.Property(sr => sr.Positions).IsRequired().HasMaxLength(1000);
-
-                // Index for faster queries on target URL and search date
-                entity.HasIndex(sr => new { sr.TargetUrl, sr.SearchDate });
+                entity.Property(sr => sr.SearchDate).IsRequired();
+                entity.Property(sr => sr.SearchEngine).IsRequired().HasMaxLength(100);
             });
         }
 

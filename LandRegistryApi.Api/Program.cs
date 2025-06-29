@@ -38,7 +38,6 @@ namespace LandRegistryApi.Api
                     spa.Options.SourcePath = "ReactApp/infotrackui";
                     if (app.Environment.IsDevelopment())
                     {
-                        // todo: i dont think i need to setup cors? it should be on the same origin
                         spa.UseReactDevelopmentServer(npmScript: "start");
                     }
                 });
