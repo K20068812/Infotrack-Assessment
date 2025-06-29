@@ -41,10 +41,11 @@ namespace LandRegistryApi.Core.Services
 
         public async Task<Result<List<GroupedSearchResult>>> GetGroupedRankingHistoryAsync(
             string targetUrl,
+            string searchQuery,
             GroupingPeriod groupBy,
             int days)
         {
-            var searchResults = await _searchResultRepository.GetAllSearchResultsAsync(targetUrl, days);
+            var searchResults = await _searchResultRepository.GetAllSearchResultsAsync(targetUrl, searchQuery, days);
             var groupedResults = new List<GroupedSearchResult>();
 
             var queryGroups = searchResults.GroupBy(sr => sr.SearchQuery);

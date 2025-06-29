@@ -34,7 +34,7 @@ namespace LandRegistryApi.Api.Controllers
             });
         }
 
-        [HttpGet("api/ranking-history/{targetUrl}")]
+        [HttpGet("api/ranking-history")]
 
         public async Task<IActionResult> GetRankingHistory([FromQuery] RankingHistoryRequest request)
         {
@@ -55,14 +55,18 @@ namespace LandRegistryApi.Api.Controllers
             }));
         }
 
-        [HttpGet("api/ranking-history/{targetUrl}/grouped")]
+        [HttpGet("api/ranking-history/grouped")]
         public async Task<IActionResult> GetGroupedRankingHistory(
-        string targetUrl,
-        [FromQuery] GroupingPeriod groupingPeriod,
-        [FromQuery] int days = 30)
+        [FromQuery] RankingHistoryRequest request,
+        [FromQuery] string groupingPeriod)
         {
-            var unescapedUrl = Uri.UnescapeDataString(targetUrl);
-            var result = await _rankingService.GetGroupedRankingHistoryAsync(unescapedUrl, groupingPeriod, days);
+            if (!Enum.TryParse<GroupingPeriod>(groupingPeriod, true, out var groupingPeriodValue))
+            {
+                return StatusCode(400, "Invalid grouping period");
+            }
+
+            var unescapedUrl = Uri.UnescapeDataString(request.TargetUrl);
+            var result = await _rankingService.GetGroupedRankingHistoryAsync(unescapedUrl, request.SearchQuery, groupingPeriodValue, request.Days);
 
             if (!result.IsSuccess)
             {
