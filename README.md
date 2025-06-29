@@ -18,6 +18,7 @@ Potential Issues:
 Google actively tries to prevent scraping (you are blocked by a cookie consent banner)
 The only way I found to avoid this was by setting the cookies in the request
 In the appsettings.json, there is a Socs cookie and a SecureEnid cookie. These take a year to expire, so should work okay. I generated them through going on an incognito tab on my browser, going to google, accepting the cookie consent option and copying those cookie values. So if they don't work you may want to do the same.
+The __Secure-ENID cookie is used to remember your preferences (language, number of results, safesearch filter etc.) and the Socs cookie is used to store state regarding cookie choices
 
 
 Future improvements:
