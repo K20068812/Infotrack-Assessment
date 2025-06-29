@@ -43,6 +43,7 @@ const MemoizedLineChart = memo(({ data }) => (
 const App = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [targetUrl, setTargetUrl] = useState("");
+  const [searchEngine, setSearchEngine] = useState("Google");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
@@ -56,7 +57,7 @@ const App = () => {
     if (targetUrl && groupedHistory.length > 0) {
       loadGroupedHistory();
     }
-  }, [groupBy]);
+  }, [groupBy, searchEngine]);
 
   const handleSearch = async () => {
     if (!searchQuery || !targetUrl) {
@@ -71,7 +72,7 @@ const App = () => {
     setResult(null);
 
     try {
-      const response = await checkRanking(searchQuery, targetUrl);
+      const response = await checkRanking(searchQuery, targetUrl, searchEngine);
 
       setResult(response);
       loadHistory();
@@ -89,7 +90,11 @@ const App = () => {
 
     setHistoryLoading(true);
     try {
-      const response = await getRankingHistory(searchQuery, targetUrl);
+      const response = await getRankingHistory(
+        searchQuery,
+        targetUrl,
+        searchEngine
+      );
       setHistory(response);
     } catch (err) {
       setError("Failed to load ranking history. Please try again later.");
@@ -103,7 +108,12 @@ const App = () => {
     if (!targetUrl) return;
 
     try {
-      const response = await getGroupedHistory(searchQuery, targetUrl, groupBy);
+      const response = await getGroupedHistory(
+        searchQuery,
+        targetUrl,
+        searchEngine,
+        groupBy
+      );
       setGroupedHistory(response);
     } catch (err) {
       console.error("Failed to load grouped history:", err);
@@ -144,6 +154,33 @@ const App = () => {
         style={{ border: "1px solid #ccc", padding: "20px", margin: "20px 0" }}
       >
         <h2>Search Form</h2>
+
+        <div style={{ marginBottom: "15px" }}>
+          <label>Search Engine:</label>
+          <br />
+          <div style={{ marginTop: "5px" }}>
+            <label style={{ marginRight: "20px" }}>
+              <input
+                type="radio"
+                value="Google"
+                checked={searchEngine === "Google"}
+                onChange={(e) => setSearchEngine(e.target.value)}
+                style={{ marginRight: "5px" }}
+              />
+              Google
+            </label>
+            <label>
+              <input
+                type="radio"
+                value="Bing"
+                checked={searchEngine === "Bing"}
+                onChange={(e) => setSearchEngine(e.target.value)}
+                style={{ marginRight: "5px" }}
+              />
+              Bing
+            </label>
+          </div>
+        </div>
 
         <div style={{ marginBottom: "15px" }}>
           <label>Search Keywords:</label>
@@ -197,6 +234,10 @@ const App = () => {
         >
           <h3>Search Results</h3>
           <div>
+            <strong>Search Engine:</strong>{" "}
+            {result.searchEngine || searchEngine}
+          </div>
+          <div>
             <strong>Search Query:</strong> {result.searchQuery}
           </div>
           <div>
@@ -227,7 +268,10 @@ const App = () => {
             marginBottom: "20px",
           }}
         >
-          <h3>Ranking History (Last 30 Days)</h3>
+          <h3>
+            Ranking History (Last 30 Days) -{" "}
+            {searchEngine.charAt(0).toUpperCase() + searchEngine.slice(1)}
+          </h3>
 
           <div>
             <button

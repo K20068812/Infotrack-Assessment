@@ -1,6 +1,6 @@
 const API_BASE = "/api";
 
-const checkRanking = async (searchQuery, targetUrl) => {
+const checkRanking = async (searchQuery, targetUrl, searchEngine) => {
   if (!searchQuery || !targetUrl) {
     throw new Error("Please enter both search keywords and target URL.");
   }
@@ -10,7 +10,11 @@ const checkRanking = async (searchQuery, targetUrl) => {
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({ searchQuery, targetUrl }),
+    body: JSON.stringify({
+      SearchQuery: searchQuery,
+      TargetUrl: targetUrl,
+      SearchEngine: searchEngine,
+    }),
   });
 
   if (!response.ok) {
@@ -21,7 +25,7 @@ const checkRanking = async (searchQuery, targetUrl) => {
   return data;
 };
 
-const getRankingHistory = async (searchQuery, targetUrl) => {
+const getRankingHistory = async (searchQuery, targetUrl, searchEngine) => {
   if (!searchQuery || !targetUrl) {
     throw new Error("Please enter both search keywords and target URL.");
   }
@@ -29,7 +33,9 @@ const getRankingHistory = async (searchQuery, targetUrl) => {
   const response = await fetch(
     `${API_BASE}/ranking-history?targetUrl=${encodeURIComponent(
       targetUrl
-    )}&searchQuery=${encodeURIComponent(searchQuery)}&days=30`
+    )}&searchQuery=${encodeURIComponent(
+      searchQuery
+    )}&searchEngine=${searchEngine}`
   );
 
   if (!response.ok) {
@@ -40,7 +46,12 @@ const getRankingHistory = async (searchQuery, targetUrl) => {
   return data;
 };
 
-const getGroupedHistory = async (searchQuery, targetUrl, groupBy) => {
+const getGroupedHistory = async (
+  searchQuery,
+  targetUrl,
+  searchEngine,
+  groupBy
+) => {
   if (!searchQuery || !targetUrl) {
     throw new Error("Please enter both search keywords and target URL.");
   }
@@ -48,7 +59,9 @@ const getGroupedHistory = async (searchQuery, targetUrl, groupBy) => {
   const response = await fetch(
     `${API_BASE}/ranking-history/grouped?targetUrl=${encodeURIComponent(
       targetUrl
-    )}&searchQuery=${encodeURIComponent(searchQuery)}&groupingPeriod=${groupBy}`
+    )}&searchQuery=${encodeURIComponent(
+      searchQuery
+    )}&searchEngine=${searchEngine}&groupingPeriod=${groupBy}`
   );
 
   if (!response.ok) {

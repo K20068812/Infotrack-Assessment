@@ -5,6 +5,6 @@ namespace LandRegistryApi.Core.Interfaces
     public interface ISearchResultRepository
     {
         Task<SearchResult> SaveSearchResultAsync(SearchResult result);
-        Task<List<SearchResult>> GetAllSearchResultsAsync(string targetUrl, string searchQuery, string searchEngine, int days);
+        Task<List<SearchResult>> GetAllSearchResultsAsync(string targetUrl, string searchQuery, string searchEngine);
     }
 }

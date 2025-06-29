@@ -16,10 +16,7 @@ namespace LandRegistryApi.Infrastructure.Configuration
             services.AddDbContext<ApplicationDbContext>(options => 
                 options.UseSqlServer(configuration.GetConnectionString("DefaultConnection")));
             services.AddScoped<ISearchResultRepository, SearchResultRepository>();
-            services.AddScoped<ISearchEngine, GoogleSearchEngine>();
             services.AddScoped<ISearchEngine, BingSearchEngine>();
-            services.AddScoped<ISearchEngineFactory, SearchEngineFactory>();
-
             services.AddHttpClient<ISearchEngine, GoogleSearchEngine>((serviceProvider, client) =>
             {
                 var options = serviceProvider.GetRequiredService<IOptions<GoogleSearchOptions>>().Value;
@@ -30,6 +27,8 @@ namespace LandRegistryApi.Infrastructure.Configuration
                     client.DefaultRequestHeaders.Add("User-Agent", options.UserAgent);
                 }
             });
+            services.AddScoped<ISearchEngineFactory, SearchEngineFactory>();
+
             services.Configure<GoogleSearchOptions>(configuration.GetSection(GoogleSearchOptions.SectionName));
 
             return services;
