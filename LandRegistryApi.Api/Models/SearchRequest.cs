@@ -11,5 +11,8 @@ namespace LandRegistryApi.Api.Models
         [Required]
         [Url]
         public required string TargetUrl { get; set; }
+
+        [Required]
+        public required string SearchEngine { get; set; }
     }
 }

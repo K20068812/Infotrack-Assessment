@@ -341,7 +341,7 @@ const App = () => {
               </tbody>
             </table>
           ) : (
-            <p>No ranking history found. Perform a search to start tracking!</p>
+            <p>No ranking history found</p>
           )
         ) : viewMode === "grouped" ? (
           groupedHistory.length > 0 ? (
@@ -391,9 +391,7 @@ const App = () => {
               </tbody>
             </table>
           ) : (
-            <p>
-              No grouped data available. Perform a search to start tracking!
-            </p>
+            <p>No grouped data available. Perform a search to start tracking</p>
           )
         ) : (
           viewMode === "chart" && (

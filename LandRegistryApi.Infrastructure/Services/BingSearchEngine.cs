@@ -7,18 +7,18 @@ using FluentResults;
 
 namespace LandRegistryApi.Infrastructure.Services
 {
-    public class GoogleSearchEngine : ISearchEngine
+    public class BingSearchEngine : ISearchEngine
     {
-        private readonly HttpClient _httpClient; 
+        private readonly HttpClient _httpClient;
         private readonly GoogleSearchOptions _options;
-        public GoogleSearchEngine(HttpClient httpClient, IOptions<GoogleSearchOptions> options)
+        public BingSearchEngine(HttpClient httpClient, IOptions<GoogleSearchOptions> options)
         {
             _httpClient = httpClient;
             _options = options.Value;
         }
 
-        public string BaseUrl => "https://www.google.co.uk/search?num=100&q=";
-        public string SearchEngineName => "Google";
+        public string BaseUrl => "https://www.bing.co.uk/search?count=100&q=";
+        public string SearchEngineName => "Bing";
 
         public async Task<Result<List<int>>> GetRankingPositionsAsync(string searchQuery, string targetUrl)
         {
@@ -26,13 +26,7 @@ namespace LandRegistryApi.Infrastructure.Services
             {
                 var encodedQuery = Uri.EscapeDataString(searchQuery);
                 var searchUrl = $"{BaseUrl}{encodedQuery}";
-
                 var request = new HttpRequestMessage(HttpMethod.Get, searchUrl);
-
-                if (!string.IsNullOrEmpty(_options.SocsCookie) && !string.IsNullOrEmpty(_options.SecureEnidCookie))
-                {
-                    request.Headers.Add("Cookie", $"SOCS={_options.SocsCookie}; __Secure-ENID={_options.SecureEnidCookie}");
-                }
 
                 var response = await _httpClient.SendAsync(request);
                 var content = await response.Content.ReadAsStringAsync();

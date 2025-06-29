@@ -18,7 +18,7 @@ namespace LandRegistryApi.Api.Controllers
         [HttpPost("api/check-ranking")]
         public async Task<IActionResult> CheckRanking([FromBody] SearchRequest request)
         {
-            var result = await _rankingService.CheckRankingAsync(request.SearchQuery, request.TargetUrl);
+            var result = await _rankingService.CheckRankingAsync(request.SearchQuery, request.TargetUrl, request.SearchEngine);
             if (!result.IsSuccess)
             {
                 return StatusCode(500, result.Errors);

@@ -6,18 +6,25 @@ namespace LandRegistryApi.Core.Services
 {
     public class RankingService : IRankingService
     {
-        private readonly ISearchEngine _searchEngine;
+        private readonly ISearchEngineFactory _searchEngineFactory;
         private readonly ISearchResultRepository _searchResultRepository;
 
-        public RankingService(ISearchEngine searchEngine, ISearchResultRepository searchResultRepository)
+        public RankingService(ISearchEngineFactory searchEngineFactory, ISearchResultRepository searchResultRepository)
         {
-            _searchEngine = searchEngine ?? throw new ArgumentNullException(nameof(searchEngine));
+            _searchEngineFactory = searchEngineFactory ?? throw new ArgumentNullException(nameof(searchEngineFactory));
             _searchResultRepository = searchResultRepository ?? throw new ArgumentNullException(nameof(searchResultRepository));
         }
 
-        public async Task<Result<SearchResult>> CheckRankingAsync(string searchQuery, string targetUrl)
+        public async Task<Result<SearchResult>> CheckRankingAsync(string searchQuery, string targetUrl, string searchEngineName)
         {
-            var positions = await _searchEngine.GetRankingPositionsAsync(searchQuery, targetUrl);
+            var searchEngineCreationResult = _searchEngineFactory.Create(searchEngineName);
+            if (!searchEngineCreationResult.IsSuccess)
+            {
+                return Result.Fail(searchEngineCreationResult.Errors);
+            }
+            var searchEngine = searchEngineCreationResult.Value;
+
+            var positions = await searchEngine.GetRankingPositionsAsync(searchQuery, targetUrl, searchEngineName);
             if (!positions.IsSuccess)
             {
                 return Result.Fail(positions.Errors);
@@ -29,12 +36,13 @@ namespace LandRegistryApi.Core.Services
                 TargetUrl = targetUrl,
                 Positions = positions.Value,
                 SearchDate = DateTime.UtcNow,
+                SearchEngine = searchEngineName
             };
 
             return await _searchResultRepository.SaveSearchResultAsync(result);
         }
 
-        public async Task<Result<List<SearchResult>>> GetRankingHistoryAsync(string targetUrl, string searchQuery, int days)
+        public async Task<Result<List<SearchResult>>> GetRankingHistoryAsync(string targetUrl, string searchQuery, string searchEngineName, int days)
         {
             return await _searchResultRepository.GetAllSearchResultsAsync(targetUrl, searchQuery, days);
         }
@@ -42,6 +50,7 @@ namespace LandRegistryApi.Core.Services
         public async Task<Result<List<GroupedSearchResult>>> GetGroupedRankingHistoryAsync(
             string targetUrl,
             string searchQuery,
+            string searchEngineName,
             GroupingPeriod groupBy,
             int days)
         {
