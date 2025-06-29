@@ -21,5 +21,9 @@ In the appsettings.json, there is a Socs cookie and a SecureEnid cookie. These t
 
 
 Future improvements:
-
 A more polished UI 
+
+Video Demo:
+
+https://github.com/user-attachments/assets/4eeb2cdc-062f-4321-9959-c3bfab162320
+
