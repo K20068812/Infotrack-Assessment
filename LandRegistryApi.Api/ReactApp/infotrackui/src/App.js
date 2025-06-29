@@ -12,7 +12,7 @@ import { checkRanking, getGroupedHistory, getRankingHistory } from "./Api";
 import { formatDate, formatPeriodDate, getPositionColor } from "./helpers";
 
 const MemoizedLineChart = memo(({ data }) => (
-  <div style={{ width: "100%", height: "300px" }}>
+  <div className="chart-container">
     <ResponsiveContainer>
       <LineChart data={data}>
         <CartesianGrid strokeDasharray="3 3" />
@@ -152,42 +152,39 @@ const App = () => {
   }, [history, groupedHistory, viewMode, groupBy]);
 
   return (
-    <div>
+    <div className="container">
       <h1>Ranking Checker</h1>
 
-      <div
-        style={{ border: "1px solid #ccc", padding: "20px", margin: "20px 0" }}
-      >
+      <div className="section-box">
         <h2>Search Form</h2>
 
-        <div style={{ marginBottom: "15px" }}>
+        <div className="form-group">
           <label>Search Engine:</label>
-          <br />
-          <div style={{ marginTop: "5px" }}>
-            <label style={{ marginRight: "20px" }}>
+          <div className="radio-group">
+            <label className="radio-option">
               <input
                 type="radio"
                 value="Google"
                 checked={searchEngine === "Google"}
                 onChange={(e) => setSearchEngine(e.target.value)}
-                style={{ marginRight: "5px" }}
+                className="radio-input"
               />
               Google
             </label>
-            <label>
+            <label className="radio-option">
               <input
                 type="radio"
                 value="Bing"
                 checked={searchEngine === "Bing"}
                 onChange={(e) => setSearchEngine(e.target.value)}
-                style={{ marginRight: "5px" }}
+                className="radio-input"
               />
               Bing
             </label>
           </div>
         </div>
 
-        <div style={{ marginBottom: "15px" }}>
+        <div className="form-group">
           <label>Search Keywords:</label>
           <br />
           <input
@@ -195,11 +192,11 @@ const App = () => {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="e.g., land registry searches"
-            size="50"
+            className="text-input"
           />
         </div>
 
-        <div style={{ marginBottom: "15px" }}>
+        <div className="form-group">
           <label>Target Website URL:</label>
           <br />
           <input
@@ -207,51 +204,38 @@ const App = () => {
             value={targetUrl}
             onChange={(e) => setTargetUrl(e.target.value)}
             placeholder="e.g., www.infotrack.co.uk"
-            size="50"
+            className="text-input"
           />
         </div>
 
-        <button onClick={handleSearch} disabled={loading}>
+        <button
+          onClick={handleSearch}
+          disabled={loading}
+          className="primary-button"
+        >
           {loading ? "Checking Rankings..." : "Check Rankings"}
         </button>
       </div>
 
-      {error && (
-        <div
-          style={{
-            backgroundColor: "#ffebee",
-            padding: "10px",
-            border: "1px solid red",
-            margin: "10px 0",
-          }}
-        >
-          Error: {error}
-        </div>
-      )}
+      {error && <div className="error-box">Error: {error}</div>}
 
       {result && (
-        <div
-          style={{
-            border: "1px solid #ccc",
-            padding: "15px",
-            margin: "20px 0",
-          }}
-        >
+        <div className="result-box">
           <h3>Search Results</h3>
-          <div>
+          <div className="result-item">
             <strong>Search Engine:</strong>{" "}
             {result.searchEngine || searchEngine}
           </div>
-          <div>
+          <div className="result-item">
             <strong>Search Query:</strong> {result.searchQuery}
           </div>
-          <div>
+          <div className="result-item">
             <strong>Target URL:</strong> {result.targetUrl}
           </div>
-          <div>
+          <div className="result-item">
             <strong>Search Date:</strong> {formatDate(result.searchDate)}
           </div>
-          <div>
+          <div className="result-item">
             <strong>Positions Found:</strong>{" "}
             <span style={{ color: getPositionColor(result.positions) }}>
               {result.positions.length === 0
@@ -262,50 +246,31 @@ const App = () => {
         </div>
       )}
 
-      <div
-        style={{ border: "1px solid #ccc", padding: "20px", margin: "20px 0" }}
-      >
-        <div
-          style={{
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "center",
-            marginBottom: "20px",
-          }}
-        >
+      <div className="section-box">
+        <div className="header-controls">
           <h3>
             Ranking History (Last 30 Days) -{" "}
             {searchEngine.charAt(0).toUpperCase() + searchEngine.slice(1)}
           </h3>
 
-          <div>
+          <div className="view-controls">
             <button
               onClick={() => setViewMode("table")}
-              style={{
-                backgroundColor: viewMode === "table" ? "#007bff" : "#f8f9fa",
-                color: viewMode === "table" ? "white" : "black",
-                marginRight: "5px",
-              }}
+              className={`view-button ${viewMode === "table" ? "active" : ""}`}
             >
               Table View
             </button>
             <button
               onClick={() => setViewMode("grouped")}
-              style={{
-                backgroundColor: viewMode === "grouped" ? "#007bff" : "#f8f9fa",
-                color: viewMode === "grouped" ? "white" : "black",
-                marginRight: "5px",
-              }}
+              className={`view-button ${
+                viewMode === "grouped" ? "active" : ""
+              }`}
             >
               Grouped View
             </button>
             <button
               onClick={() => setViewMode("chart")}
-              style={{
-                backgroundColor: viewMode === "chart" ? "#007bff" : "#f8f9fa",
-                color: viewMode === "chart" ? "white" : "black",
-                marginRight: "10px",
-              }}
+              className={`view-button ${viewMode === "chart" ? "active" : ""}`}
             >
               Chart View
             </button>
@@ -315,6 +280,7 @@ const App = () => {
                 loadGroupedHistory();
               }}
               disabled={historyLoading}
+              className="refresh-button"
             >
               {historyLoading ? "Loading..." : "Refresh"}
             </button>
@@ -322,12 +288,12 @@ const App = () => {
         </div>
 
         {(viewMode === "grouped" || viewMode === "chart") && (
-          <div style={{ marginBottom: "20px" }}>
-            <label style={{ marginRight: "10px" }}>Group by:</label>
+          <div className="group-controls">
+            <label className="group-label">Group by:</label>
             <select
               value={groupBy}
               onChange={(e) => setGroupBy(e.target.value)}
-              style={{ marginRight: "10px" }}
+              className="group-select"
             >
               <option value="day">Day</option>
               <option value="week">Week</option>
@@ -336,15 +302,12 @@ const App = () => {
         )}
 
         {historyLoading ? (
-          <p>Loading history...</p>
+          <p className="loading-text">Loading history...</p>
         ) : viewMode === "table" ? (
           history.length > 0 ? (
-            <table
-              border="1"
-              style={{ width: "100%", borderCollapse: "collapse" }}
-            >
+            <table className="data-table">
               <thead>
-                <tr style={{ backgroundColor: "#f8f9fa" }}>
+                <tr className="table-header">
                   <th>Date</th>
                   <th>Search Query</th>
                   <th>Positions</th>
@@ -356,11 +319,7 @@ const App = () => {
                   <tr key={index}>
                     <td>{formatDate(item.searchDate)}</td>
                     <td>{item.searchQuery}</td>
-                    <td
-                      style={{
-                        color: getPositionColor(item.positions),
-                      }}
-                    >
+                    <td style={{ color: getPositionColor(item.positions) }}>
                       {item.positions.length === 0
                         ? "Not Found"
                         : item.positions.join(", ")}
@@ -368,11 +327,9 @@ const App = () => {
                     <td>
                       {item.positions && item.positions.length > 0 ? (
                         <span
+                          className="position-badge"
                           style={{
                             backgroundColor: getPositionColor(item.positions),
-                            color: "white",
-                            padding: "2px 6px",
-                            borderRadius: "3px",
                           }}
                         >
                           #{Math.min(...item.positions)}
@@ -386,16 +343,13 @@ const App = () => {
               </tbody>
             </table>
           ) : (
-            <p>No ranking history found</p>
+            <p className="empty-state">No ranking history found</p>
           )
         ) : viewMode === "grouped" ? (
           groupedHistory.length > 0 ? (
-            <table
-              border="1"
-              style={{ width: "100%", borderCollapse: "collapse" }}
-            >
+            <table className="data-table">
               <thead>
-                <tr style={{ backgroundColor: "#f8f9fa" }}>
+                <tr className="table-header">
                   <th>Period</th>
                   <th>Search Query</th>
                   <th>Searches</th>
@@ -417,13 +371,11 @@ const App = () => {
                     <td>{item.totalSearches}</td>
                     <td>
                       <span
+                        className="position-badge"
                         style={{
                           backgroundColor: getPositionColor([
                             item.bestPosition,
                           ]),
-                          color: "white",
-                          padding: "2px 6px",
-                          borderRadius: "3px",
                         }}
                       >
                         #{item.bestPosition}
@@ -436,19 +388,19 @@ const App = () => {
               </tbody>
             </table>
           ) : (
-            <p>No grouped data available. Perform a search to start tracking</p>
+            <p className="empty-state">
+              No grouped data available. Perform a search to start tracking
+            </p>
           )
         ) : (
           viewMode === "chart" && (
             <div>
-              <div style={{ marginBottom: "40px" }}>
-                <h4>
+              <div>
+                <h4 className="chart-title">
                   Ranking Trend{" "}
                   {groupedHistory.length > 0 ? `(${groupBy} grouping)` : ""}
                 </h4>
-                <p style={{ fontSize: "14px", color: "#666" }}>
-                  Best position chart
-                </p>
+                <p className="chart-subtitle">Best position chart</p>
                 <MemoizedLineChart data={chartData} />
               </div>
             </div>

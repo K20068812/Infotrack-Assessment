@@ -6,7 +6,199 @@ body {
   padding: 0;
 }
 
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
+
+.section-box {
+  border: 1px solid #ccc;
+  padding: 20px;
+  margin: 20px 0;
+}
+
+.form-group {
+  margin-bottom: 15px;
+}
+
+.radio-group {
+  margin-top: 5px;
+}
+
+.radio-option {
+  margin-right: 20px;
+}
+
+.radio-input {
+  margin-right: 5px;
+}
+
+.text-input {
+  width: 100%;
+  max-width: 400px;
+  padding: 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.primary-button {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.primary-button:hover:not(:disabled) {
+  background-color: #0056b3;
+}
+
+.primary-button:disabled {
+  background-color: #6c757d;
+  cursor: not-allowed;
+}
+
+.error-box {
+  background-color: #ffebee;
+  padding: 10px;
+  border: 1px solid red;
+  margin: 10px 0;
+  border-radius: 4px;
+}
+
+.result-box {
+  border: 1px solid #ccc;
+  padding: 15px;
+  margin: 20px 0;
+  border-radius: 4px;
+}
+
+.result-item {
+  margin-bottom: 8px;
+}
+
+.header-controls {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.view-controls {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.view-button {
+  padding: 8px 16px;
+  border: 1px solid #ccc;
+  background-color: #f8f9fa;
+  color: black;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.view-button.active {
+  background-color: #007bff;
+  color: white;
+  border-color: #007bff;
+}
+
+.refresh-button {
+  background-color: #28a745;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-left: 10px;
+}
+
+.refresh-button:disabled {
+  background-color: #6c757d;
+  cursor: not-allowed;
+}
+
+.group-controls {
+  margin-bottom: 20px;
+}
+
+.group-label {
+  margin-right: 10px;
+}
+
+.group-select {
+  margin-right: 10px;
+  padding: 4px 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.chart-container {
+  width: 100%;
+  height: 300px;
+  margin-bottom: 40px;
+}
+
+.chart-title {
+  margin-bottom: 10px;
+}
+
+.chart-subtitle {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 20px;
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  border: 1px solid #ccc;
+}
+
+.table-header {
+  background-color: #f8f9fa;
+}
+
 th,
 td {
   padding: 8px;
+  text-align: left;
+  border: 1px solid #ccc;
+}
+
+.position-badge {
+  color: white;
+  padding: 2px 6px;
+  border-radius: 3px;
+}
+
+.text-success {
+  color: #28a745;
+}
+
+.text-danger {
+  color: #dc3545;
+}
+
+.text-warning {
+  color: #ffc107;
+}
+
+.text-muted {
+  color: #666;
+}
+
+.loading-text {
+  color: #666;
+  font-style: italic;
+}
+
+.empty-state {
+  text-align: center;
+  color: #666;
+  padding: 40px;
 }
