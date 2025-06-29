@@ -2,7 +2,7 @@
 
 namespace LandRegistryApi.Api.Models
 {
-    public class SearchRequest
+    public class RankingHistoryRequest
     {
         [Required]
         [MinLength(1)]
@@ -11,5 +11,7 @@ namespace LandRegistryApi.Api.Models
         [Required]
         [Url]
         public required string TargetUrl { get; set; }
+
+        public int Days { get; set; } = 30;
     }
 }

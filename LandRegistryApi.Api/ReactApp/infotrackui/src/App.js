@@ -30,6 +30,38 @@ const MemoizedLineChart = memo(({ data }) => (
   </div>
 ));
 
+const getDateKey = (date, groupBy) => {
+  const d = new Date(date);
+
+  switch (groupBy) {
+    case "daily":
+      return d.toISOString().split("T")[0];
+    case "weekly":
+      const weekStart = new Date(d);
+      weekStart.setDate(d.getDate() - d.getDay());
+      return weekStart.toISOString().split("T")[0];
+    case "monthly":
+      return `${d.getFullYear()}-${(d.getMonth() + 1)
+        .toString()
+        .padStart(2, "0")}`;
+    default:
+      return "all";
+  }
+};
+
+const groupedHistory = useMemo(() => {
+  return history.reduce((grouped, item) => {
+    const key = getDateKey(item.searchDate, groupBy);
+
+    if (!grouped.has(key)) {
+      grouped.set(key, []);
+    }
+    grouped.get(key).push(...item.positions);
+
+    return grouped;
+  }, new Map());
+}, [history, groupBy]);
+
 const App = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [targetUrl, setTargetUrl] = useState("");

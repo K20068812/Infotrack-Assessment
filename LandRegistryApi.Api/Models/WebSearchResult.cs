@@ -1,11 +1,10 @@
-﻿namespace LandRegistryApi.Core.Entities
+﻿namespace LandRegistryApi.Api.Models
 {
-    public class SearchResult
+    public class WebSearchResult
     {
-        public int Id { get; set; }
         public required string SearchQuery { get; set; }
         public required string TargetUrl { get; set; }
         public required List<int> Positions { get; set; }
-        public DateTime SearchDate { get; set; }
+        public required DateTime SearchDate { get; set; }
     }
 }

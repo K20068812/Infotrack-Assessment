@@ -13,12 +13,12 @@ namespace LandRegistryApi.Infrastructure.Repositories
             _context = context;
         }
 
-        public async Task<List<SearchResult>> GetAllSearchResultsAsync(string targetUrl, int days)
+        public async Task<List<SearchResult>> GetAllSearchResultsAsync(string targetUrl, string searchQuery, int days)
         {
             var cutOffDate = DateTime.UtcNow.AddDays(-days);
 
             return await _context.SearchResults
-                .Where(sr => sr.TargetUrl == targetUrl && sr.SearchDate >= cutOffDate)
+                .Where(sr => sr.TargetUrl == targetUrl && sr.SearchQuery == searchQuery && sr.SearchDate >= cutOffDate)
                 .OrderByDescending(sr => sr.SearchDate)
                 .ToListAsync();
         }

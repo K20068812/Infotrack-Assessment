@@ -1,6 +1,8 @@
 ﻿using LandRegistryApi.Api.Models;
+using LandRegistryApi.Core.Entities;
 using LandRegistryApi.Core.Interfaces;
 using Microsoft.AspNetCore.Mvc;
+using SearchResult = LandRegistryApi.Api.Models.WebSearchResult;
 
 namespace LandRegistryApi.Api.Controllers
 {
@@ -16,7 +18,6 @@ namespace LandRegistryApi.Api.Controllers
         [HttpPost("api/check-ranking")]
         public async Task<IActionResult> CheckRanking([FromBody] SearchRequest request)
         {
-            // todo: do we want a try catch here? or in the service?
             var result = await _rankingService.CheckRankingAsync(request.SearchQuery, request.TargetUrl);
             if (!result.IsSuccess)
             {
@@ -35,10 +36,10 @@ namespace LandRegistryApi.Api.Controllers
 
         [HttpGet("api/ranking-history/{targetUrl}")]
 
-        public async Task<IActionResult> GetRankingHistory(string targetUrl, [FromQuery] int days = 30)
+        public async Task<IActionResult> GetRankingHistory([FromQuery] RankingHistoryRequest request)
         {
-            var unescapedUrl = Uri.UnescapeDataString(targetUrl);
-            var result = await _rankingService.GetRankingHistoryAsync(unescapedUrl, days);
+            var unescapedUrl = Uri.UnescapeDataString(request.TargetUrl);
+            var result = await _rankingService.GetRankingHistoryAsync(unescapedUrl, request.SearchQuery, request.Days);
             if (!result.IsSuccess)
             {
                 return StatusCode(500, result.Errors);
@@ -52,6 +53,23 @@ namespace LandRegistryApi.Api.Controllers
                 Positions = sr.Positions,
                 SearchDate = sr.SearchDate,
             }));
+        }
+
+        [HttpGet("api/ranking-history/{targetUrl}/grouped")]
+        public async Task<IActionResult> GetGroupedRankingHistory(
+        string targetUrl,
+        [FromQuery] GroupingPeriod groupingPeriod,
+        [FromQuery] int days = 30)
+        {
+            var unescapedUrl = Uri.UnescapeDataString(targetUrl);
+            var result = await _rankingService.GetGroupedRankingHistoryAsync(unescapedUrl, groupingPeriod, days);
+
+            if (!result.IsSuccess)
+            {
+                return StatusCode(500, result.Errors);
+            }
+
+            return Ok(result.Value);
         }
     }
 }

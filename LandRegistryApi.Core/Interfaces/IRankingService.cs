@@ -6,6 +6,7 @@ namespace LandRegistryApi.Core.Interfaces
     public interface IRankingService
     {
         Task<Result<SearchResult>> CheckRankingAsync(string searchQuery, string targetUrl);
-        Task<Result<List<SearchResult>>> GetRankingHistoryAsync(string targetUrl, int days = 30);
+        Task<Result<List<SearchResult>>> GetRankingHistoryAsync(string targetUrl, string searchQuery, int days);
+        Task<Result<List<GroupedSearchResult>>> GetGroupedRankingHistoryAsync(string targetUrl, GroupingPeriod groupBy, int days);
     }
 }
