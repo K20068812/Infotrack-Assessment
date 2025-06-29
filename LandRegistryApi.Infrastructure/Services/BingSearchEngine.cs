@@ -1,6 +1,4 @@
 ﻿using LandRegistryApi.Core.Interfaces;
-using LandRegistryApi.Infrastructure.Configuration;
-using Microsoft.Extensions.Options;
 using HtmlAgilityPack;
 using System.Web;
 using FluentResults;
@@ -31,17 +29,15 @@ namespace LandRegistryApi.Infrastructure.Services
                     var searchUrl = $"{BaseUrl}{encodedQuery}&first={i}&setmkt=en-GB&cc=GB";
                     var request = new HttpRequestMessage(HttpMethod.Get, searchUrl);
 
-                    // TODO: add this to appsettings.json?
-                    request.Headers.Add("Cookie", "_edge_cd=m=en-gb; usrloc=HS=1&ELOC=LAT=53.4808|LON=-2.2426|N=Manchester, England|ELT=6|&BLOCK=TS=250629132037; RCHLANG=en&PV=10.0.0&DM=1&BRW=NOTP&BRH=M&CW=712&CH=929&SCW=1164&SCH=1841&DPR=1.0&UTC=60&EXLTT=3; SRCHD=AF=NOFORM; SRCHUSR=DOB=20220101");
-                    request.Headers.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36");
-                    request.Headers.Add("Accept-Language", "en-GB,en;q=0.9");
-                    request.Headers.Add("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8");
-
                     var response = await _httpClient.SendAsync(request);
                     var content = await response.Content.ReadAsStringAsync();
 
-                    var pagePositions = await ParseSearchResults(content, targetUrl, i);
-                    positions.AddRange(pagePositions);
+                    var pagePositions = ParseSearchResults(content, targetUrl, i);
+
+                    if (pagePositions.IsSuccess)
+                    {
+                        positions.AddRange(pagePositions.Value);
+                    }
                 }
 
                 return Result.Ok(positions);
@@ -52,61 +48,116 @@ namespace LandRegistryApi.Infrastructure.Services
             }
         }
 
-        private static async Task<List<int>> ParseSearchResults(string htmlContent, string targetUrl, int startIndex)
+        private Result<List<int>> ParseSearchResults(string htmlContent, string targetUrl, int startIndex)
         {
             var doc = new HtmlDocument();
             doc.LoadHtml(htmlContent);
 
             var tpttDivs = doc.DocumentNode.SelectNodes("//div[@class='tptt']");
-            if (tpttDivs == null) return new List<int>();
+            if (tpttDivs == null)
+            {
+                return Result.Fail("No search results found");
+            }
 
             var positions = new List<int>();
 
             for (int i = 0; i < tpttDivs.Count; i++)
             {
                 var div = tpttDivs[i];
-                string href = null;
 
                 var ancestorLink = div.Ancestors("a").FirstOrDefault(a => !string.IsNullOrEmpty(a.GetAttributeValue("href", "")));
-                if (ancestorLink != null)
+                if (ancestorLink == null)
                 {
-                    href = ancestorLink.GetAttributeValue("href", "");
+                    continue;
+                }
+                var href = ancestorLink.GetAttributeValue("href", "");
+                // bing stores it urls as redirects, so we need to resolve the final URL
+                var urlResult = ResolveRedirect(href);
+                if (urlResult.IsFailed)
+                {
+                    continue;
                 }
 
-                var url = await ResolveRedirectAsync(href);
-
-
-                if (!string.IsNullOrEmpty(href))
+                var url = urlResult.Value;
+                if (string.IsNullOrEmpty(url))
                 {
-                    var decodedHref = HttpUtility.HtmlDecode(href);
-                    if (decodedHref.Contains(targetUrl, StringComparison.OrdinalIgnoreCase))
-                    {
-                        positions.Add(startIndex + i + 1);
-                    }
+                    continue;
+                }
+                var decodedUrl = Uri.UnescapeDataString(url);
+                if (decodedUrl.Contains(targetUrl, StringComparison.OrdinalIgnoreCase))
+                {
+                    positions.Add(startIndex + i + 1);
                 }
             }
 
             return positions;
         }
 
-        private static async Task<string> ResolveRedirectAsync(string redirectUrl)
+        private Result<string> ResolveRedirect(string redirectUrl)
         {
-            // TODO: FIND BETTER WAY TO DO THIS, VERY SLOW
-            using var handler = new HttpClientHandler
+            var decodedUrl = Uri.UnescapeDataString(redirectUrl);
+            if (!IsBingRedirectUrl(decodedUrl))
             {
-                AllowAutoRedirect = false
-            };
-
-            using var client = new HttpClient(handler);
-            var response = await client.GetAsync(redirectUrl);
-
-            if ((int)response.StatusCode >= 300 && (int)response.StatusCode < 400)
-            {
-                return response.Headers.Location?.ToString() ?? redirectUrl;
+                return decodedUrl;
             }
 
-            return redirectUrl;
+            var actualUrlResult = ExtractUrlFromBingRedirect(decodedUrl);
+            if (!actualUrlResult.IsSuccess)
+            {
+                return Result.Fail(actualUrlResult.Errors);
+            }
+
+            var actualUrl = actualUrlResult.Value;
+            return Result.Ok(actualUrl);
         }
 
+        private static Result<string> ExtractUrlFromBingRedirect(string bingRedirectUrl)
+        {
+            if (!bingRedirectUrl.Contains("/ck/a?"))
+            {
+                return Result.Fail("Could not extract redirect url");
+            }
+
+            try
+            {
+                var uri = new Uri(HttpUtility.HtmlDecode(bingRedirectUrl));
+                var queryParams = HttpUtility.ParseQueryString(uri.Query);
+
+                var uParam = queryParams["u"];
+                if (string.IsNullOrEmpty(uParam))
+                {
+                    return Result.Fail("Could not extract redirect url");
+                }
+
+                // Copied from: https://greasyfork.org/en/scripts/474035-bing-link-redirect-decoder/code
+                var base64String = uParam.StartsWith("a1") ? uParam.Substring(2) : uParam;
+                base64String = base64String.Replace('-', '+').Replace('_', '/');
+
+                var paddingNeeded = base64String.Length % 4;
+                if (paddingNeeded > 0)
+                {
+                    base64String += new string('=', 4 - paddingNeeded);
+                }
+
+                var decodedBytes = Convert.FromBase64String(base64String);
+                var decodedUrl = System.Text.Encoding.UTF8.GetString(decodedBytes);
+                return Result.Ok(decodedUrl);
+            }
+            catch (Exception e)
+            {
+                return Result.Fail($"Could not extract redirect url - {e.Message}");
+            }
+        }
+
+        private static bool IsBingRedirectUrl(string url)
+        {
+            if (string.IsNullOrEmpty(url))
+            {
+                return false;
+            }
+
+            return url.StartsWith("https://www.bing.com/ck/a?", StringComparison.OrdinalIgnoreCase) ||
+                   url.StartsWith("https://www.bing.com/aclk?", StringComparison.OrdinalIgnoreCase);
+        }
     }
 }
