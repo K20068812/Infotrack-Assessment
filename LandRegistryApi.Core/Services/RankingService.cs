@@ -44,7 +44,7 @@ namespace LandRegistryApi.Core.Services
 
         public async Task<Result<List<SearchResult>>> GetRankingHistoryAsync(string targetUrl, string searchQuery, string searchEngineName, int days)
         {
-            return await _searchResultRepository.GetAllSearchResultsAsync(targetUrl, searchQuery, days);
+            return await _searchResultRepository.GetAllSearchResultsAsync(targetUrl, searchQuery, searchEngineName, days);
         }
 
         public async Task<Result<List<GroupedSearchResult>>> GetGroupedRankingHistoryAsync(
@@ -54,7 +54,7 @@ namespace LandRegistryApi.Core.Services
             GroupingPeriod groupBy,
             int days)
         {
-            var searchResults = await _searchResultRepository.GetAllSearchResultsAsync(targetUrl, searchQuery, days);
+            var searchResults = await _searchResultRepository.GetAllSearchResultsAsync(targetUrl, searchQuery, searchEngineName, days);
             var groupedResults = new List<GroupedSearchResult>();
 
             var queryGroups = searchResults.GroupBy(sr => sr.SearchQuery);

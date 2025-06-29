@@ -39,7 +39,7 @@ namespace LandRegistryApi.Api.Controllers
         public async Task<IActionResult> GetRankingHistory([FromQuery] RankingHistoryRequest request)
         {
             var unescapedUrl = Uri.UnescapeDataString(request.TargetUrl);
-            var result = await _rankingService.GetRankingHistoryAsync(unescapedUrl, request.SearchQuery, request.Days);
+            var result = await _rankingService.GetRankingHistoryAsync(unescapedUrl, request.SearchQuery, request.SearchEngine, request.Days);
             if (!result.IsSuccess)
             {
                 return StatusCode(500, result.Errors);
@@ -66,7 +66,7 @@ namespace LandRegistryApi.Api.Controllers
             }
 
             var unescapedUrl = Uri.UnescapeDataString(request.TargetUrl);
-            var result = await _rankingService.GetGroupedRankingHistoryAsync(unescapedUrl, request.SearchQuery, groupingPeriodValue, request.Days);
+            var result = await _rankingService.GetGroupedRankingHistoryAsync(unescapedUrl, request.SearchQuery, request.SearchEngine, groupingPeriodValue, request.Days);
 
             if (!result.IsSuccess)
             {

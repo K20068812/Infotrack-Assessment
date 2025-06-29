@@ -13,5 +13,8 @@ namespace LandRegistryApi.Api.Models
         public required string TargetUrl { get; set; }
 
         public int Days { get; set; } = 30;
+
+        [Required]
+        public required string SearchEngine { get; set; }
     }
 }
