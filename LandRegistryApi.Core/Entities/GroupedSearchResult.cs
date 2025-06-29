@@ -1,16 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace LandRegistryApi.Core.Entities
+﻿namespace LandRegistryApi.Core.Entities
 {
     public enum GroupingPeriod
     {
         Day,
         Week,
-        Month
     }
 
     public class GroupedSearchResult

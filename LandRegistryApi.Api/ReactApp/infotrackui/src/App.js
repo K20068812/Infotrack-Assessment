@@ -326,7 +326,6 @@ const App = () => {
             >
               <option value="day">Day</option>
               <option value="week">Week</option>
-              <option value="month">Month</option>
             </select>
           </div>
         )}

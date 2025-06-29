@@ -103,9 +103,6 @@ namespace LandRegistryApi.Core.Services
                 case GroupingPeriod.Week:
                     return results.GroupBy(sr => sr.SearchDate.AddDays(-(int)sr.SearchDate.DayOfWeek).ToString("yyyy-MM-dd"));
 
-                case GroupingPeriod.Month:
-                    return results.GroupBy(sr => sr.SearchDate.ToString("yyyy-MM"));
-
                 default:
                     throw new NotImplementedException($"Grouping period '{period}' is not implemented.");
             }
@@ -122,10 +119,6 @@ namespace LandRegistryApi.Core.Services
                 case GroupingPeriod.Week:
                     var weekStart = DateTime.Parse(periodKey);
                     return (weekStart, weekStart.AddDays(7).AddTicks(-1));
-
-                case GroupingPeriod.Month:
-                    var monthStart = DateTime.Parse(periodKey + "-01");
-                    return (monthStart, monthStart.AddMonths(1).AddTicks(-1));
 
                 default:
                     throw new NotImplementedException($"Grouping period '{groupBy}' is not implemented.");
