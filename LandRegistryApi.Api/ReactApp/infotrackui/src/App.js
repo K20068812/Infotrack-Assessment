@@ -142,7 +142,7 @@ const App = () => {
 
   return (
     <div>
-      <h1>SEO Ranking Checker</h1>
+      <h1>Ranking Checker</h1>
 
       <div
         style={{ border: "1px solid #ccc", padding: "20px", margin: "20px 0" }}
@@ -334,22 +334,19 @@ const App = () => {
             >
               <thead>
                 <tr style={{ backgroundColor: "#f8f9fa" }}>
-                  <th style={{ padding: "8px" }}>Date</th>
-                  <th style={{ padding: "8px" }}>Search Query</th>
-                  <th style={{ padding: "8px" }}>Positions</th>
-                  <th style={{ padding: "8px" }}>Best Position</th>
+                  <th>Date</th>
+                  <th>Search Query</th>
+                  <th>Positions</th>
+                  <th>Best Position</th>
                 </tr>
               </thead>
               <tbody>
                 {history.map((item, index) => (
                   <tr key={index}>
-                    <td style={{ padding: "8px" }}>
-                      {formatDate(item.searchDate)}
-                    </td>
-                    <td style={{ padding: "8px" }}>{item.searchQuery}</td>
+                    <td>{formatDate(item.searchDate)}</td>
+                    <td>{item.searchQuery}</td>
                     <td
                       style={{
-                        padding: "8px",
                         color: getPositionColor(item.positions),
                       }}
                     >
@@ -357,7 +354,7 @@ const App = () => {
                         ? "Not Found"
                         : item.positions.join(", ")}
                     </td>
-                    <td style={{ padding: "8px" }}>
+                    <td>
                       {item.positions && item.positions.length > 0 ? (
                         <span
                           style={{
@@ -388,26 +385,26 @@ const App = () => {
             >
               <thead>
                 <tr style={{ backgroundColor: "#f8f9fa" }}>
-                  <th style={{ padding: "8px" }}>Period</th>
-                  <th style={{ padding: "8px" }}>Search Query</th>
-                  <th style={{ padding: "8px" }}>Searches</th>
-                  <th style={{ padding: "8px" }}>Best Position</th>
-                  <th style={{ padding: "8px" }}>Average Position</th>
-                  <th style={{ padding: "8px" }}>Worst Position</th>
+                  <th>Period</th>
+                  <th>Search Query</th>
+                  <th>Searches</th>
+                  <th>Best Position</th>
+                  <th>Average Position</th>
+                  <th>Worst Position</th>
                 </tr>
               </thead>
               <tbody>
                 {groupedHistory.map((item, index) => (
                   <tr key={index}>
-                    <td style={{ padding: "8px" }}>
+                    <td>
                       {formatPeriodDate(
                         item.periodStart,
                         item.groupingPeriod.toLowerCase()
                       )}
                     </td>
-                    <td style={{ padding: "8px" }}>{item.searchQuery}</td>
-                    <td style={{ padding: "8px" }}>{item.totalSearches}</td>
-                    <td style={{ padding: "8px" }}>
+                    <td>{item.searchQuery}</td>
+                    <td>{item.totalSearches}</td>
+                    <td>
                       <span
                         style={{
                           backgroundColor: getPositionColor([
@@ -421,8 +418,8 @@ const App = () => {
                         #{item.bestPosition}
                       </span>
                     </td>
-                    <td style={{ padding: "8px" }}>#{item.averagePosition}</td>
-                    <td style={{ padding: "8px" }}>#{item.worstPosition}</td>
+                    <td>#{item.averagePosition}</td>
+                    <td>#{item.worstPosition}</td>
                   </tr>
                 ))}
               </tbody>
