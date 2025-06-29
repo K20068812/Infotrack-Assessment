@@ -8,6 +8,7 @@ import {
   ResponsiveContainer,
   CartesianGrid,
 } from "recharts";
+import { checkRanking, getGroupedHistory, getRankingHistory } from "./Api";
 
 const MemoizedLineChart = memo(({ data }) => (
   <div style={{ width: "100%", height: "300px" }}>
@@ -71,16 +72,7 @@ const App = () => {
     setResult(null);
 
     try {
-      const response = await fetch(`${API_BASE}/check-ranking`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          searchQuery,
-          targetUrl,
-        }),
-      });
+      const response = await checkRanking(searchQuery, targetUrl);
 
       if (!response.ok) {
         const errorData = await response.json();
@@ -104,17 +96,8 @@ const App = () => {
 
     setHistoryLoading(true);
     try {
-      const encodedUrl = encodeURIComponent(targetUrl);
-      const response = await fetch(
-        `${API_BASE}/ranking-history?targetUrl=${encodedUrl}&searchQuery=${encodeURIComponent(
-          searchQuery
-        )}&days=30`
-      );
-
-      if (response.ok) {
-        const data = await response.json();
-        setHistory(data);
-      }
+      const response = await getRankingHistory(searchQuery, targetUrl);
+      setHistory(response);
     } catch (err) {
       setError("Failed to load ranking history. Please try again later.");
       setHistory([]);
@@ -127,15 +110,8 @@ const App = () => {
     if (!targetUrl) return;
 
     try {
-      const encodedUrl = encodeURIComponent(targetUrl);
-      const response = await fetch(
-        `${API_BASE}/ranking-history/grouped?targetUrl=${encodedUrl}&searchQuery=${searchQuery}&groupingPeriod=${groupBy}&days=30`
-      );
-
-      if (response.ok) {
-        const data = await response.json();
-        setGroupedHistory(data);
-      }
+      const response = await getGroupedHistory(searchQuery, targetUrl, groupBy);
+      setGroupedHistory(response);
     } catch (err) {
       console.error("Failed to load grouped history:", err);
       setGroupedHistory([]);
