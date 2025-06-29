@@ -1,4 +1,4 @@
-import { useState, useMemo, memo } from "react";
+import { useEffect, useState, useMemo, memo } from "react";
 import {
   LineChart,
   XAxis,
@@ -47,10 +47,16 @@ const App = () => {
   const [history, setHistory] = useState([]);
   const [groupedHistory, setGroupedHistory] = useState([]);
   const [historyLoading, setHistoryLoading] = useState(false);
-  const [viewMode, setViewMode] = useState("table"); // "table", "chart", "grouped"
-  const [groupBy, setGroupBy] = useState("day"); // "day", "week", "month"
+  const [viewMode, setViewMode] = useState("table");
+  const [groupBy, setGroupBy] = useState("day");
 
   const API_BASE = "/api";
+
+  useEffect(() => {
+    if (targetUrl && groupedHistory.length > 0) {
+      loadGroupedHistory();
+    }
+  }, [groupBy]);
 
   const handleSearch = async () => {
     if (!searchQuery || !targetUrl) {
@@ -133,17 +139,6 @@ const App = () => {
     } catch (err) {
       console.error("Failed to load grouped history:", err);
       setGroupedHistory([]);
-    }
-  };
-
-  // Reload grouped data when groupBy changes
-  const handleGroupByChange = (newGroupBy) => {
-    setGroupBy(newGroupBy);
-    if (targetUrl) {
-      // Use setTimeout to ensure state is updated first
-      setTimeout(() => {
-        loadGroupedHistory();
-      }, 0);
     }
   };
 
@@ -356,7 +351,7 @@ const App = () => {
             <label style={{ marginRight: "10px" }}>Group by:</label>
             <select
               value={groupBy}
-              onChange={(e) => handleGroupByChange(e.target.value)}
+              onChange={(e) => setGroupBy(e.target.value)}
               style={{ marginRight: "10px" }}
             >
               <option value="day">Day</option>
