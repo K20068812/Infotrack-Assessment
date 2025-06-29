@@ -18,7 +18,7 @@ namespace LandRegistryApi.Infrastructure.Configuration
             services.AddScoped<ISearchResultRepository, SearchResultRepository>();
             services.AddScoped<ISearchEngine, GoogleSearchEngine>();
             services.AddScoped<ISearchEngine, BingSearchEngine>();
-            services.AddScoped<SearchEngineFactory>();
+            services.AddScoped<ISearchEngineFactory, SearchEngineFactory>();
 
             services.AddHttpClient<ISearchEngine, GoogleSearchEngine>((serviceProvider, client) =>
             {

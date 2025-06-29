@@ -14,8 +14,8 @@ namespace LandRegistryApi.Api
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
-            builder.Services.AddCoreServices();
             builder.Services.AddInfrastructureServices(builder.Configuration);
+            builder.Services.AddCoreServices();
 
             var app = builder.Build();
 

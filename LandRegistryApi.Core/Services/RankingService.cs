@@ -24,7 +24,7 @@ namespace LandRegistryApi.Core.Services
             }
             var searchEngine = searchEngineCreationResult.Value;
 
-            var positions = await searchEngine.GetRankingPositionsAsync(searchQuery, targetUrl, searchEngineName);
+            var positions = await searchEngine.GetRankingPositionsAsync(searchQuery, targetUrl);
             if (!positions.IsSuccess)
             {
                 return Result.Fail(positions.Errors);

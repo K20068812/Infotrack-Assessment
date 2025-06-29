@@ -19,7 +19,7 @@ namespace LandRegistryApi.Infrastructure.Repositories
 
             return await _context.SearchResults
                 .Where(sr => sr.TargetUrl == targetUrl && sr.SearchQuery == searchQuery && sr.SearchDate >= cutOffDate
-                && sr.SearchEngine == searchEngine)
+                && string.Equals(sr.SearchEngine, searchEngine, StringComparison.OrdinalIgnoreCase))
                 .OrderByDescending(sr => sr.SearchDate)
                 .ToListAsync();
         }
