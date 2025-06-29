@@ -17,7 +17,8 @@ const checkRanking = async (searchQuery, targetUrl) => {
     throw new Error("Failed to check ranking");
   }
 
-  return response.json();
+  const data = await response.json();
+  return data;
 };
 
 const getRankingHistory = async (searchQuery, targetUrl) => {
@@ -35,7 +36,8 @@ const getRankingHistory = async (searchQuery, targetUrl) => {
     throw new Error("Failed to fetch ranking history");
   }
 
-  return response.json();
+  const data = await response.json();
+  return data;
 };
 
 const getGroupedHistory = async (searchQuery, targetUrl, groupBy) => {
@@ -44,16 +46,17 @@ const getGroupedHistory = async (searchQuery, targetUrl, groupBy) => {
   }
 
   const response = await fetch(
-    `${API_BASE}/grouped-history?targetUrl=${encodeURIComponent(
+    `${API_BASE}/ranking-history/grouped?targetUrl=${encodeURIComponent(
       targetUrl
-    )}&searchQuery=${encodeURIComponent(searchQuery)}&groupBy=${groupBy}`
+    )}&searchQuery=${encodeURIComponent(searchQuery)}&groupingPeriod=${groupBy}`
   );
 
   if (!response.ok) {
     throw new Error("Failed to fetch grouped history");
   }
 
-  return response.json();
+  const data = await response.json();
+  return data;
 };
 
 export { checkRanking, getRankingHistory, getGroupedHistory };

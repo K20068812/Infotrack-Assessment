@@ -9,6 +9,7 @@ import {
   CartesianGrid,
 } from "recharts";
 import { checkRanking, getGroupedHistory, getRankingHistory } from "./Api";
+import { formatDate, formatPeriodDate, getPositionColor } from "./helpers";
 
 const MemoizedLineChart = memo(({ data }) => (
   <div style={{ width: "100%", height: "300px" }}>
@@ -51,8 +52,6 @@ const App = () => {
   const [viewMode, setViewMode] = useState("table");
   const [groupBy, setGroupBy] = useState("day");
 
-  const API_BASE = "/api";
-
   useEffect(() => {
     if (targetUrl && groupedHistory.length > 0) {
       loadGroupedHistory();
@@ -74,13 +73,7 @@ const App = () => {
     try {
       const response = await checkRanking(searchQuery, targetUrl);
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.Error || "Failed to check ranking");
-      }
-
-      const data = await response.json();
-      setResult(data);
+      setResult(response);
       loadHistory();
       loadGroupedHistory();
     } catch (err) {
@@ -116,49 +109,6 @@ const App = () => {
       console.error("Failed to load grouped history:", err);
       setGroupedHistory([]);
     }
-  };
-
-  const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString("en-GB", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  };
-
-  const formatPeriodDate = (dateString, groupBy) => {
-    const date = new Date(dateString);
-    switch (groupBy) {
-      case "week":
-        return (
-          date.toLocaleDateString("en-GB", {
-            day: "2-digit",
-            month: "2-digit",
-            year: "numeric",
-          }) + " (Week)"
-        );
-      case "month":
-        return date.toLocaleDateString("en-GB", {
-          month: "long",
-          year: "numeric",
-        });
-      default:
-        return date.toLocaleDateString("en-GB", {
-          day: "2-digit",
-          month: "2-digit",
-          year: "numeric",
-        });
-    }
-  };
-
-  const getPositionColor = (positions) => {
-    if (!positions || positions.length === 0) return "red";
-    const bestPosition = Math.min(...positions);
-    if (bestPosition <= 10) return "green";
-    if (bestPosition <= 30) return "orange";
-    return "red";
   };
 
   const chartData = useMemo(() => {
