@@ -25,42 +25,18 @@ const MemoizedLineChart = memo(({ data }) => (
           dot={false}
           activeDot={{ r: 4 }}
         />
+        <Line
+          type="monotone"
+          dataKey="avgRank"
+          stroke="#28a745"
+          strokeWidth={2}
+          dot={false}
+          activeDot={{ r: 4 }}
+        />
       </LineChart>
     </ResponsiveContainer>
   </div>
 ));
-
-const getDateKey = (date, groupBy) => {
-  const d = new Date(date);
-
-  switch (groupBy) {
-    case "daily":
-      return d.toISOString().split("T")[0];
-    case "weekly":
-      const weekStart = new Date(d);
-      weekStart.setDate(d.getDate() - d.getDay());
-      return weekStart.toISOString().split("T")[0];
-    case "monthly":
-      return `${d.getFullYear()}-${(d.getMonth() + 1)
-        .toString()
-        .padStart(2, "0")}`;
-    default:
-      return "all";
-  }
-};
-
-const groupedHistory = useMemo(() => {
-  return history.reduce((grouped, item) => {
-    const key = getDateKey(item.searchDate, groupBy);
-
-    if (!grouped.has(key)) {
-      grouped.set(key, []);
-    }
-    grouped.get(key).push(...item.positions);
-
-    return grouped;
-  }, new Map());
-}, [history, groupBy]);
 
 const App = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -69,8 +45,10 @@ const App = () => {
   const [result, setResult] = useState(null);
   const [error, setError] = useState(null);
   const [history, setHistory] = useState([]);
+  const [groupedHistory, setGroupedHistory] = useState([]);
   const [historyLoading, setHistoryLoading] = useState(false);
-  const [viewMode, setViewMode] = useState("table"); // "table" or "chart"
+  const [viewMode, setViewMode] = useState("table"); // "table", "chart", "grouped"
+  const [groupBy, setGroupBy] = useState("day"); // "day", "week", "month"
 
   const API_BASE = "/api";
 
@@ -106,6 +84,7 @@ const App = () => {
       const data = await response.json();
       setResult(data);
       loadHistory();
+      loadGroupedHistory();
     } catch (err) {
       setError(err.message || "An unexpected error occurred.");
       setResult(null);
@@ -121,7 +100,7 @@ const App = () => {
     try {
       const encodedUrl = encodeURIComponent(targetUrl);
       const response = await fetch(
-        `${API_BASE}/ranking-history/${encodedUrl}?days=30`
+        `${API_BASE}/ranking-history?targetUrl=${targetUrl}&searchQuery=${searchQuery}&days=30`
       );
 
       if (response.ok) {
@@ -136,6 +115,36 @@ const App = () => {
     }
   };
 
+  const loadGroupedHistory = async () => {
+    if (!targetUrl) return;
+
+    try {
+      const encodedUrl = encodeURIComponent(targetUrl);
+      const response = await fetch(
+        `${API_BASE}/ranking-history/grouped?targetUrl=${encodedUrl}&searchQuery=${searchQuery}&groupingPeriod=${groupBy}&days=30`
+      );
+
+      if (response.ok) {
+        const data = await response.json();
+        setGroupedHistory(data);
+      }
+    } catch (err) {
+      console.error("Failed to load grouped history:", err);
+      setGroupedHistory([]);
+    }
+  };
+
+  // Reload grouped data when groupBy changes
+  const handleGroupByChange = (newGroupBy) => {
+    setGroupBy(newGroupBy);
+    if (targetUrl) {
+      // Use setTimeout to ensure state is updated first
+      setTimeout(() => {
+        loadGroupedHistory();
+      }, 0);
+    }
+  };
+
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString("en-GB", {
       day: "2-digit",
@@ -144,6 +153,31 @@ const App = () => {
       hour: "2-digit",
       minute: "2-digit",
     });
+  };
+
+  const formatPeriodDate = (dateString, groupBy) => {
+    const date = new Date(dateString);
+    switch (groupBy) {
+      case "week":
+        return (
+          date.toLocaleDateString("en-GB", {
+            day: "2-digit",
+            month: "2-digit",
+            year: "numeric",
+          }) + " (Week)"
+        );
+      case "month":
+        return date.toLocaleDateString("en-GB", {
+          month: "long",
+          year: "numeric",
+        });
+      default:
+        return date.toLocaleDateString("en-GB", {
+          day: "2-digit",
+          month: "2-digit",
+          year: "numeric",
+        });
+    }
   };
 
   const getPositionColor = (positions) => {
@@ -155,6 +189,18 @@ const App = () => {
   };
 
   const chartData = useMemo(() => {
+    if (viewMode === "chart" && groupedHistory.length > 0) {
+      return groupedHistory
+        .slice()
+        .reverse()
+        .map((item) => ({
+          date: formatPeriodDate(item.periodStart, groupBy),
+          bestRank: item.bestPosition,
+          avgRank: Math.round(item.averagePosition),
+          worstRank: item.worstPosition,
+        }));
+    }
+
     return history
       .slice()
       .reverse()
@@ -165,7 +211,7 @@ const App = () => {
             ? Math.min(...item.positions)
             : 101,
       }));
-  }, [history]);
+  }, [history, groupedHistory, viewMode, groupBy]);
 
   return (
     <div>
@@ -272,6 +318,16 @@ const App = () => {
               Table View
             </button>
             <button
+              onClick={() => setViewMode("grouped")}
+              style={{
+                backgroundColor: viewMode === "grouped" ? "#007bff" : "#f8f9fa",
+                color: viewMode === "grouped" ? "white" : "black",
+                marginRight: "5px",
+              }}
+            >
+              Grouped View
+            </button>
+            <button
               onClick={() => setViewMode("chart")}
               style={{
                 backgroundColor: viewMode === "chart" ? "#007bff" : "#f8f9fa",
@@ -281,16 +337,37 @@ const App = () => {
             >
               Chart View
             </button>
-            <button onClick={loadHistory} disabled={historyLoading}>
+            <button
+              onClick={() => {
+                loadHistory();
+                loadGroupedHistory();
+              }}
+              disabled={historyLoading}
+            >
               {historyLoading ? "Loading..." : "Refresh"}
             </button>
           </div>
         </div>
 
+        {(viewMode === "grouped" || viewMode === "chart") && (
+          <div style={{ marginBottom: "20px" }}>
+            <label style={{ marginRight: "10px" }}>Group by:</label>
+            <select
+              value={groupBy}
+              onChange={(e) => handleGroupByChange(e.target.value)}
+              style={{ marginRight: "10px" }}
+            >
+              <option value="day">Day</option>
+              <option value="week">Week</option>
+              <option value="month">Month</option>
+            </select>
+          </div>
+        )}
+
         {historyLoading ? (
           <p>Loading history...</p>
-        ) : history.length > 0 ? (
-          viewMode === "table" ? (
+        ) : viewMode === "table" ? (
+          history.length > 0 ? (
             <table
               border="1"
               style={{ width: "100%", borderCollapse: "collapse" }}
@@ -318,7 +395,7 @@ const App = () => {
                     >
                       {item.positions.length === 0
                         ? "Not Found"
-                        : item.positions}
+                        : item.positions.join(", ")}
                     </td>
                     <td style={{ padding: "8px" }}>
                       {item.positions && item.positions.length > 0 ? (
@@ -341,17 +418,76 @@ const App = () => {
               </tbody>
             </table>
           ) : (
-            viewMode === "chart" && (
-              <div>
-                <div style={{ marginBottom: "40px" }}>
-                  <h4>Best Ranking Trend</h4>
-                  <MemoizedLineChart data={chartData} />
-                </div>
-              </div>
-            )
+            <p>No ranking history found. Perform a search to start tracking!</p>
+          )
+        ) : viewMode === "grouped" ? (
+          groupedHistory.length > 0 ? (
+            <table
+              border="1"
+              style={{ width: "100%", borderCollapse: "collapse" }}
+            >
+              <thead>
+                <tr style={{ backgroundColor: "#f8f9fa" }}>
+                  <th style={{ padding: "8px" }}>Period</th>
+                  <th style={{ padding: "8px" }}>Search Query</th>
+                  <th style={{ padding: "8px" }}>Searches</th>
+                  <th style={{ padding: "8px" }}>Best Position</th>
+                  <th style={{ padding: "8px" }}>Average Position</th>
+                  <th style={{ padding: "8px" }}>Worst Position</th>
+                </tr>
+              </thead>
+              <tbody>
+                {groupedHistory.map((item, index) => (
+                  <tr key={index}>
+                    <td style={{ padding: "8px" }}>
+                      {formatPeriodDate(
+                        item.periodStart,
+                        item.groupingPeriod.toLowerCase()
+                      )}
+                    </td>
+                    <td style={{ padding: "8px" }}>{item.searchQuery}</td>
+                    <td style={{ padding: "8px" }}>{item.totalSearches}</td>
+                    <td style={{ padding: "8px" }}>
+                      <span
+                        style={{
+                          backgroundColor: getPositionColor([
+                            item.bestPosition,
+                          ]),
+                          color: "white",
+                          padding: "2px 6px",
+                          borderRadius: "3px",
+                        }}
+                      >
+                        #{item.bestPosition}
+                      </span>
+                    </td>
+                    <td style={{ padding: "8px" }}>#{item.averagePosition}</td>
+                    <td style={{ padding: "8px" }}>#{item.worstPosition}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          ) : (
+            <p>
+              No grouped data available. Perform a search to start tracking!
+            </p>
           )
         ) : (
-          <p>No ranking history found. Perform a search to start tracking!</p>
+          viewMode === "chart" && (
+            <div>
+              <div style={{ marginBottom: "40px" }}>
+                <h4>
+                  Ranking Trend{" "}
+                  {groupedHistory.length > 0 ? `(${groupBy} grouping)` : ""}
+                </h4>
+                <p style={{ fontSize: "14px", color: "#666" }}>
+                  Blue line: Best position, Green line: Average position (lower
+                  is better)
+                </p>
+                <MemoizedLineChart data={chartData} />
+              </div>
+            </div>
+          )
         )}
       </div>
     </div>
