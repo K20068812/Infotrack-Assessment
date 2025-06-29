@@ -26,6 +26,7 @@ const MemoizedLineChart = memo(({ data }) => (
           strokeWidth={2}
           dot={false}
           activeDot={{ r: 4 }}
+          name="Best Position"
         />
         <Line
           type="monotone"
@@ -34,6 +35,16 @@ const MemoizedLineChart = memo(({ data }) => (
           strokeWidth={2}
           dot={false}
           activeDot={{ r: 4 }}
+          name="Average Position"
+        />
+        <Line
+          type="monotone"
+          dataKey="worstRank"
+          stroke="#dc3545"
+          strokeWidth={2}
+          dot={false}
+          activeDot={{ r: 4 }}
+          name="Worst Position"
         />
       </LineChart>
     </ResponsiveContainer>
