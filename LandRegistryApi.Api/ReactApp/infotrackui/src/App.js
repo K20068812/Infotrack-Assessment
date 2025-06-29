@@ -89,7 +89,9 @@ const App = () => {
     try {
       const encodedUrl = encodeURIComponent(targetUrl);
       const response = await fetch(
-        `${API_BASE}/ranking-history/${encodedUrl}?days=30`
+        `${API_BASE}/ranking-history?targetUrl=${encodedUrl}&searchQuery=${encodeURIComponent(
+          searchQuery
+        )}&days=30`
       );
 
       if (response.ok) {
@@ -286,7 +288,7 @@ const App = () => {
                     >
                       {item.positions.length === 0
                         ? "Not Found"
-                        : item.positions}
+                        : item.positions.join(", ")}
                     </td>
                     <td style={{ padding: "8px" }}>
                       {item.positions && item.positions.length > 0 ? (

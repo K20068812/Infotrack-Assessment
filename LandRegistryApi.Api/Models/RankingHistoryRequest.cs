@@ -2,14 +2,15 @@
 
 namespace LandRegistryApi.Api.Models
 {
-    public class SearchRequest
+    public class RankingHistoryRequest
     {
-        [Required]
-        [MinLength(1)]
-        public string SearchQuery { get; set; }
-
         [Required]
         [Url]
         public string TargetUrl { get; set; }
+
+        [Required]
+        [MinLength(1)]
+        public string SearchQuery { get; set; }
     }
+
 }

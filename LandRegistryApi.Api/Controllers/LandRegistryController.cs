@@ -33,12 +33,11 @@ namespace LandRegistryApi.Api.Controllers
             });
         }
 
-        [HttpGet("api/ranking-history/{targetUrl}")]
-
-        public async Task<IActionResult> GetRankingHistory(string targetUrl, [FromQuery] int days = 30)
+        [HttpGet("api/ranking-history")]
+        public async Task<IActionResult> GetRankingHistory([FromQuery] RankingHistoryRequest request, [FromQuery] int days = 30)
         {
-            var unescapedUrl = Uri.UnescapeDataString(targetUrl);
-            var result = await _rankingService.GetRankingHistoryAsync(unescapedUrl, days);
+            var unescapedUrl = Uri.UnescapeDataString(request.TargetUrl);
+            var result = await _rankingService.GetRankingHistoryAsync(unescapedUrl, request.SearchQuery, days);
             if (!result.IsSuccess)
             {
                 return StatusCode(500, result.Errors);

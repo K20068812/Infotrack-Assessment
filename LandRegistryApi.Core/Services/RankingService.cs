@@ -27,16 +27,16 @@ namespace LandRegistryApi.Core.Services
             {
                 SearchQuery = searchQuery,
                 TargetUrl = targetUrl,
-                Positions = positions,
+                Positions = positions.Value,
                 SearchDate = DateTime.UtcNow,
             };
 
             return await _searchResultRepository.SaveSearchResultAsync(result);
         }
 
-        public async Task<Result<List<SearchResult>>> GetRankingHistoryAsync(string targetUrl, int days = 30)
+        public async Task<Result<List<SearchResult>>> GetRankingHistoryAsync(string targetUrl, string searchQuery, int days = 30)
         {
-            return await _searchResultRepository.GetAllSearchResultsAsync(targetUrl, days);
+            return await _searchResultRepository.GetAllSearchResultsAsync(targetUrl, searchQuery, days);
         }
     }
 }
