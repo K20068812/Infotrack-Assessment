@@ -123,27 +123,21 @@ const App = () => {
 
   const chartData = useMemo(() => {
     if (viewMode === "chart" && groupedHistory.length > 0) {
-      return groupedHistory
-        .slice()
-        .reverse()
-        .map((item) => ({
-          date: formatPeriodDate(item.periodStart, groupBy),
-          bestRank: item.bestPosition,
-          avgRank: Math.round(item.averagePosition),
-          worstRank: item.worstPosition,
-        }));
+      return groupedHistory.slice().map((item) => ({
+        date: formatPeriodDate(item.periodStart, groupBy),
+        bestRank: item.bestPosition,
+        avgRank: Math.round(item.averagePosition),
+        worstRank: item.worstPosition,
+      }));
     }
 
-    return history
-      .slice()
-      .reverse()
-      .map((item) => ({
-        date: formatDate(item.searchDate),
-        bestRank:
-          item.positions && item.positions.length > 0
-            ? Math.min(...item.positions)
-            : 101,
-      }));
+    return history.slice().map((item) => ({
+      date: formatDate(item.searchDate),
+      bestRank:
+        item.positions && item.positions.length > 0
+          ? Math.min(...item.positions)
+          : 101,
+    }));
   }, [history, groupedHistory, viewMode, groupBy]);
 
   return (
@@ -445,8 +439,7 @@ const App = () => {
                   {groupedHistory.length > 0 ? `(${groupBy} grouping)` : ""}
                 </h4>
                 <p style={{ fontSize: "14px", color: "#666" }}>
-                  Blue line: Best position, Green line: Average position (lower
-                  is better)
+                  Best position chart
                 </p>
                 <MemoizedLineChart data={chartData} />
               </div>

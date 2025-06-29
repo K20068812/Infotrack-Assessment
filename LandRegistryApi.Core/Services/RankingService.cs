@@ -64,7 +64,7 @@ namespace LandRegistryApi.Core.Services
 
                 foreach (var timeGroup in timeGroups)
                 {
-                    var positions = timeGroup.SelectMany(sr => sr.Positions).Where(p => p > 0).ToList();
+                    var positions = timeGroup.SelectMany(sr => sr.Positions).Where(p => p > 0).Distinct().ToList();
                     if (positions.Count == 0)
                     {
                         continue;
